@@ -1,5 +1,5 @@
 package excel.model;
 
 public abstract class Expression {
-    public abstract double value();
+    public abstract double interpret();
 }
