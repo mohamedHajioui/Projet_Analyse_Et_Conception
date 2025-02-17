@@ -14,16 +14,16 @@ public class SpreadsheetModel {
         this.rows = rows;
         this.columns = columns;
         IntStream.range(0, rows).forEach(a -> addNewRow());
-        bindMirrors();
+        //bindMirrors();
     }
 
-    private void bindMirrors() {
-        for(int row = 0; row < this.rows; ++row) {
-            for(int column = 0; column < this.columns / 2; ++column) {
-                this.getCell(row, column).bindBidirectional(this.getCell(row, this.columns - 1 - column));
-            }
-        }
-    }
+    //private void bindMirrors() {
+    //    for(int row = 0; row < this.rows; ++row) {
+    //        for(int column = 0; column < this.columns / 2; ++column) {
+    //            this.getCell(row, column).bindBidirectional(this.getCell(row, this.columns - 1 - column));
+    //        }
+    //    }
+    //}
 
     public int getRowCount() {
         return this.rows;
