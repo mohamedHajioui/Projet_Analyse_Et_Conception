@@ -27,14 +27,14 @@ public class ExpressionBuilder {
             if (Character.isDigit(c) || c == '.'){
                 currentToken.append(c);
             } else if (c == '+' || c == '-' || c == '*' || c == '/') {
-                if (currentToken.length() > 0){
+                if (!currentToken.isEmpty()){
                     tokens.add(currentToken.toString());
                     currentToken.setLength(0);
                 }
                 tokens.add(String.valueOf(c));
             }
         }
-        if (currentToken.length() > 0){
+        if (!currentToken.isEmpty()){
             tokens.add(currentToken.toString());
         }
         return tokens;
