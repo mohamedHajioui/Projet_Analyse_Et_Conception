@@ -1,5 +1,7 @@
 package excel.model;
 
+import java.util.Objects;
+
 public abstract class BinaryExpression extends Expression {
     private Expression left;
     private Expression right;
@@ -15,4 +17,6 @@ public abstract class BinaryExpression extends Expression {
     public Expression getRight() {
         return right;
     }
+
+
 }

@@ -22,7 +22,7 @@ public class ExpressionBuilder {
         for (char c : str.toCharArray()){
             if (Character.isDigit(c) || c == '.'){
                 currentToken.append(c);
-            } else if (c == '+' || c == '-' || c == '*' || c == '/' || c=='>') {
+            } else if (c == '+' || c == '-' || c == '*' || c == '/' || c=='>' || c=='=') {
                 if (!currentToken.isEmpty()){
                     tokens.add(currentToken.toString());
                     currentToken.setLength(0);
@@ -39,23 +39,6 @@ public class ExpressionBuilder {
     }
 
     private Expression buildExpression(List<String> tokens){
-        /*
-        for(int i =0; i < tokens.size(); i++){
-            String token = tokens.get(i);
-            if(isMult(token)){
-                Expression left = new NumberExpression(Double.parseDouble(tokens.get(i-1)));
-                Expression right = new NumberExpression(Double.parseDouble(tokens.get(i+1)));
-                Expression result = makeOpExpression(token,left,right);
-                tokens.remove(i+1);
-                tokens.add(i+1,String.valueOf(result.interpret()));
-                tokens.remove(i);
-                tokens.remove(i-1);
-                buildExpression(tokens);
-
-            }
-
-        }
-        */
         int idxOp = findLastOperator(tokens);
         if(idxOp != -1){
             String op = tokens.get(idxOp);
@@ -78,24 +61,13 @@ public class ExpressionBuilder {
         }
         return -1;
     }
-    private int isMultiplication(List<String> tokens){
-        // On cherche de droite à gauche pour respecter l'associativité
-        for (int i = tokens.size() - 1; i >= 0; i--) {
-            String token = tokens.get(i);
-            if (token.equals("*") || token.equals("/")) {
-                return i;
-            }
-        }
-        return -1;
-
-    }
 
 
     private int  findLastOperator(List<String> tokens) {
 
         for (int i = tokens.size() - 1; i >= 0; i--) {
             String token = tokens.get(i);
-            if(isComparison(token)){
+            if(isComparison(token) || isEquals(token)){
                 return i;
             }
         }
@@ -115,9 +87,7 @@ public class ExpressionBuilder {
         }
         return -1;
     }
-    //public boolean isOp(char c) {
-    //    return c == '+' || c == '-' || c == '*' || c == '/';
-    //}
+
     public boolean isPlusOrMinus(char c) {
         return c == '+' || c == '-';
     }
@@ -139,11 +109,14 @@ public class ExpressionBuilder {
     public boolean isNot(String c){
         return c.equals("not");
     }
-    //public boolean isOp(String s) {
-      //  return isOp(s.charAt(0));
-    //}
 
+    public boolean isEquals(char c){
+        return c == '=';
+    }
 
+    public boolean isEquals(String s){
+        return isEquals(s.charAt(0));
+    }
 
     private Expression makeOpExpression(String op, Expression left, Expression right){
         switch (op){
@@ -157,6 +130,8 @@ public class ExpressionBuilder {
                 return new DivideExpression(left, right);
             case ">" :
                 return new GreaterThanExpression(left, right);
+            case "=" :
+                return new EqualsExpression(left, right);
             default:
                 throw new IllegalArgumentException("Unknown operator: " + op);
         }

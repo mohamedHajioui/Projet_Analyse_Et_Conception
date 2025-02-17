@@ -9,9 +9,9 @@ public class GreaterThanExpression extends ComparisonExpression {
     @Override
     public double interpret() {
         if(getLeft().interpret() > getRight().interpret()){
-            return 1;
+            return 1.0;
         }
-        return 0;
+        return 0.0;
     }
 
 
