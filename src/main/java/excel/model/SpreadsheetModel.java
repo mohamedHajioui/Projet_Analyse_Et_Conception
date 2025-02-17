@@ -5,12 +5,12 @@ import javafx.collections.ObservableList;
 
 import java.util.stream.IntStream;
 
-public class SpreadSheetModel {
+public class SpreadsheetModel {
     private final int rows;
     private final int columns;
     private final ObservableList<ObservableList<SpreadsheetCellModel>> data = FXCollections.observableArrayList();
 
-    public SpreadSheetModel(int rows, int columns) {
+    public SpreadsheetModel(int rows, int columns) {
         this.rows = rows;
         this.columns = columns;
         IntStream.range(0, rows).forEach(a -> addNewRow());
