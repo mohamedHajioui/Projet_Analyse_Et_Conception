@@ -40,6 +40,7 @@ public class MySpreadsheetView extends SpreadsheetView {
                 TablePosition cell = change.getList().get(0);
                 viewModel.addAction("select cell " + ExcelConverter.rowColToExcel(cell.getRow(), cell.getColumn()));
                 System.out.println("select cell " + ExcelConverter.rowColToExcel(cell.getRow(), cell.getColumn()));
+                viewModel.setSelectedCell(cell.getRow(), cell.getColumn());
             }
         });
 

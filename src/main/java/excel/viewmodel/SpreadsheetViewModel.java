@@ -11,6 +11,7 @@ public class SpreadsheetViewModel {
     private final SimpleBooleanProperty editableProperty = new SimpleBooleanProperty(true);
     private final ObservableList<String> actions = FXCollections.observableArrayList();
     private final StringProperty lastAction = new SimpleStringProperty("");
+    private final StringProperty selectedCell = new SimpleStringProperty("");
 
     public SpreadsheetViewModel(SpreadsheetModel model) {
         this.model = model;
@@ -60,6 +61,12 @@ public class SpreadsheetViewModel {
 
     public ObservableList<String> getActions() {
         return actions; //TODO : return an unmodifiable list mais dont le listener est toujours actif
+    }
+    public StringProperty selectedCellProperty() {
+        return selectedCell;
+    }
+    public void setSelectedCell(int row, int column){
+        selectedCell.set(getCellValueProperty(row, column).getValue());
     }
 }
 
