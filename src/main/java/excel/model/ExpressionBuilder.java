@@ -14,29 +14,35 @@ public class ExpressionBuilder {
         return null;
     }
 
-    public List<String> tokenize(String str){
+    public List<String> tokenize(String str) {
         List<String> tokens = new ArrayList<>();
         StringBuilder currentToken = new StringBuilder();
-        List<String> keywords = List.of("not", "and", "or");
 
-        for (char c : str.toCharArray()){
-            if (Character.isDigit(c) || c == '.'){
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+
+            if (Character.isDigit(c) || c == '.') {
                 currentToken.append(c);
-            } else if (c == '+' || c == '-' || c == '*' || c == '/' || c=='>' || c=='=') {
-                if (!currentToken.isEmpty()){
+            } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '>' || c == '=' || c == '!' || c == '<') {
+                if (!currentToken.isEmpty()) {
                     tokens.add(currentToken.toString());
                     currentToken.setLength(0);
                 }
-                tokens.add(String.valueOf(c));
+                if (i + 1 < str.length() && str.charAt(i + 1) == '=') {
+                    tokens.add(String.valueOf(c) + str.charAt(i + 1));
+                    i++; // Incrémente i pour sauter l'égalité déjà traitée
+                } else {
+                    tokens.add(String.valueOf(c)); // Ajoute l'opérateur simple
+                }
             }
-
-
         }
-        if (!currentToken.isEmpty()){
+
+        if (!currentToken.isEmpty()) {
             tokens.add(currentToken.toString());
         }
         return tokens;
     }
+
 
     private Expression buildExpression(List<String> tokens){
         int idxOp = findLastOperator(tokens);
