@@ -1,5 +1,6 @@
 package excel.viewmodel;
 
+import excel.model.SpreadsheetCellModel;
 import excel.model.SpreadsheetModel;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -8,10 +9,10 @@ import javafx.collections.ObservableList;
 
 public class SpreadsheetViewModel {
     private final SpreadsheetModel model;
+    private final ObjectProperty<SpreadsheetCellModel> selectedCell = new SimpleObjectProperty<>();
     private final SimpleBooleanProperty editableProperty = new SimpleBooleanProperty(true);
     private final ObservableList<String> actions = FXCollections.observableArrayList();
     private final StringProperty lastAction = new SimpleStringProperty("");
-    private final StringProperty selectedCell = new SimpleStringProperty("");
 
     public SpreadsheetViewModel(SpreadsheetModel model) {
         this.model = model;
@@ -21,6 +22,27 @@ public class SpreadsheetViewModel {
                 lastAction.set(actions.get(actions.size() - 1));
             }
         });
+    }
+
+    public void setSelectedCell(int row, int column) {
+        SpreadsheetCellModel cell = model.getCell(row, column);
+        if (cell != null) {
+            selectedCell.set(cell);
+        }
+    }
+
+    public void updateSelectedCell(String newValue) {
+        if (selectedCell.get() != null) {
+            selectedCell.get().setFormula(newValue);
+        }
+    }
+
+    public StringProperty selectedCellFormulaProperty() {
+        return selectedCell.get() != null ? selectedCell.get().formulaProperty() : new SimpleStringProperty("");
+    }
+
+    public ReadOnlyObjectProperty<String> selectedCellValueProperty() {
+        return selectedCell.get() != null ? selectedCell.get().valueProperty() : new SimpleObjectProperty<>("");
     }
 
     private SpreadsheetCellViewModel getCellViewModel(int line, int column) {
@@ -36,7 +58,7 @@ public class SpreadsheetViewModel {
     }
 
     public ReadOnlyObjectProperty<String> getCellValueProperty(int line, int column) {
-        return getCellViewModel(line, column).getCellValueProperty();
+        return model.getCell(line, column).valueProperty();
     }
 
     public void setCellValue(int line, int column, String value) {
@@ -55,18 +77,18 @@ public class SpreadsheetViewModel {
         return actions.add(action);
     }
 
-    public ReadOnlyStringProperty lastActionProperty() {
-        return lastAction;
+    public void setCellFormula(int row, int column, String formula) {
+        SpreadsheetCellModel cell = model.getCell(row, column);
+        if (cell != null) {
+            cell.setFormula(formula);
+        }
     }
 
-    public ObservableList<String> getActions() {
-        return actions; //TODO : return an unmodifiable list mais dont le listener est toujours actif
-    }
-    public StringProperty selectedCellProperty() {
-        return selectedCell;
-    }
-    public void setSelectedCell(int row, int column){
-        selectedCell.set(getCellValueProperty(row, column).getValue());
-    }
+
+
+
+
+
+
 }
 

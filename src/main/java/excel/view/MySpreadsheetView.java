@@ -35,12 +35,18 @@ public class MySpreadsheetView extends SpreadsheetView {
             }
         });
 
+        // Gérer la sélection d'une cellule
         this.getSelectionModel().getSelectedCells().addListener((ListChangeListener.Change<? extends TablePosition> change) -> {
             if (!change.getList().isEmpty()) {
                 TablePosition cell = change.getList().get(0);
-                viewModel.addAction("select cell " + ExcelConverter.rowColToExcel(cell.getRow(), cell.getColumn()));
-                System.out.println("select cell " + ExcelConverter.rowColToExcel(cell.getRow(), cell.getColumn()));
-                viewModel.setSelectedCell(cell.getRow(), cell.getColumn());
+                int row = cell.getRow();
+                int column = cell.getColumn();
+
+                System.out.println("select cell " + ExcelConverter.rowColToExcel(row, column));
+                viewModel.addAction("select cell " + ExcelConverter.rowColToExcel(row, column));
+
+                // Mettre à jour la cellule sélectionnée dans le ViewModel
+                viewModel.setSelectedCell(row, column);
             }
         });
 
@@ -66,20 +72,31 @@ public class MySpreadsheetView extends SpreadsheetView {
 
                 int finalRow = row;
                 int finalColumn = column;
-                cell.itemProperty().addListener((observableValue, oldVal, newVal) -> {
-                    if(!Objects.equals(oldVal, newVal)) {
-                        viewModel.setCellValue(finalRow, finalColumn, (String) newVal);
 
-                        System.out.println("DEBUG : change view " + newVal);
-                        // viewModel.addAction("DEBUG : change view " + newVal); // TODO : remove
+                // Mise à jour de la cellule lorsque la valeur change dans le modèle
+                viewModel.getCellValueProperty(finalRow, finalColumn).addListener((obs, oldVal, newVal) -> {
+                    if (!Objects.equals(oldVal, newVal)) {
+                        cell.setItem(newVal); // 📌 Mise à jour manuelle
                     }
                 });
 
-                viewModel.getCellValueProperty(finalRow, finalColumn).addListener((observableValue, oldVal, newVal) -> {
-                    if(!Objects.equals(oldVal, newVal)) {
-                        cell.itemProperty().set(newVal);
-                        System.out.println("DEBUG : change model " + newVal);
-                        // viewModel.addAction("DEBUG : change model " + newVal); // TODO : remove
+                // Lorsque l'utilisateur édite une cellule
+                cell.itemProperty().addListener((obs, oldVal, newVal) -> {
+                    if (!Objects.equals(oldVal, newVal)) {
+                        if (newVal instanceof String value) {
+                            viewModel.setCellFormula(finalRow, finalColumn, value); // 📌 Met à jour le modèle
+                        }
+                    }
+                });
+
+
+
+                //  Quand l'utilisateur entre une formule, on la traite
+                cell.itemProperty().addListener((observableValue, oldVal, newVal) -> {
+                    if (!Objects.equals(oldVal, newVal)) {
+                        if (newVal instanceof String value) {
+                            viewModel.setCellFormula(finalRow, finalColumn, value);
+                        }
                     }
                 });
 
@@ -90,4 +107,5 @@ public class MySpreadsheetView extends SpreadsheetView {
         grid.setRows(rows);
         return grid;
     }
+
 }
