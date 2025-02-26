@@ -1,6 +1,7 @@
 package excel.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ExpressionBuilder {
@@ -17,6 +18,7 @@ public class ExpressionBuilder {
     public List<String> tokenize(String str) {
         List<String> tokens = new ArrayList<>();
         StringBuilder currentToken = new StringBuilder();
+        String[] keywords = {"AND", "OR", "NOT"};
 
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
@@ -35,6 +37,22 @@ public class ExpressionBuilder {
                     tokens.add(String.valueOf(c)); // Ajoute l'opérateur simple
                 }
             }
+            else if (Character.isWhitespace(c)) {
+                if (!currentToken.isEmpty()) {
+                    String token = currentToken.toString();
+                    if (Arrays.asList(keywords).contains(token)) {
+                        tokens.add(token); // Si c'est keywords, ajoute-le directement
+                    } else {
+                        tokens.add(token); // Sinon, ajoute-le normalement
+                    }
+                    currentToken.setLength(0); // Réinitialise le StringBuilder
+                }
+            }
+            // Si le caractère fait partie de keywords
+            else {
+                currentToken.append(c);
+            }
+
         }
 
         if (!currentToken.isEmpty()) {
@@ -107,13 +125,19 @@ public class ExpressionBuilder {
         return isMult(s.charAt(0));
     }
     public boolean isComparison(char c1){
-        return c1 == '>';
+        return c1 == '>' || c1 == '=' || c1 == '<';
     }
     public boolean isComparison(String s){
-        return isComparison(s.charAt(0));
+        return isComparison(s.charAt(0)) || s.equals(">=") || s.equals("<=") || s.equals("!=");
     }
     public boolean isNot(String c){
         return c.equals("not");
+    }
+    public boolean isAnd(String c){
+        return c.equals("and");
+    }
+    public boolean isOr(String c){
+        return c.equals("or");
     }
 
     public boolean isEquals(char c){
