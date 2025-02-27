@@ -62,20 +62,43 @@ public class ExpressionBuilder {
     }
 
 
-    private Expression buildExpression(List<String> tokens){
+    private Expression buildExpression(List<String> tokens) {
         int idxOp = findLastOperator(tokens);
-        if(idxOp != -1){
+        if (idxOp != -1) {
             String op = tokens.get(idxOp);
-            List<String> leftTokens = new ArrayList<>(tokens.subList(0, idxOp)); //sublist -> 0 inclus, idxOp exclus
-            List<String> rightTokens = new ArrayList<>(tokens.subList(idxOp + 1, tokens.size())); //sublist -> idxOp+1 inclus, tokens .size exclus
-            //recursivité sur left and right tokens
-            Expression left = buildExpression(leftTokens);
-            Expression right = buildExpression(rightTokens);
-            return makeOpExpression(op, left, right);
+            List<String> leftTokens = new ArrayList<>(tokens.subList(0, idxOp));
+            List<String> rightTokens = new ArrayList<>(tokens.subList(idxOp + 1, tokens.size()));
 
+            if (isOr(op)) {
+                Expression left = buildExpression(leftTokens);
+                Expression right = buildExpression(rightTokens);
+                return new OrExpression(left, right);
+            }
+
+
+            else if (isAnd(op)) {
+                Expression left = buildExpression(leftTokens);
+                Expression right = buildExpression(rightTokens);
+                return new AndExpression(left, right);
+            }
+
+            else if (isNot(op)) {
+                Expression right = buildExpression(rightTokens);
+                return new NotExpression(right);
+            }
+
+            else {
+                // Sinon, l'opérateur est un opérateur arithmétique ou de comparaison
+                Expression left = buildExpression(leftTokens);
+                Expression right = buildExpression(rightTokens);
+                return makeOpExpression(op, left, right);
+            }
         }
+
+        // Si aucun opérateur n'est trouvé, on retourne une expression numérique
         return new NumberExpression(Double.parseDouble(tokens.get(0)));
     }
+
 
     private int indiceOp(List<String> tokens){
         for (int i = 0; i < tokens.size(); i++){
@@ -88,6 +111,29 @@ public class ExpressionBuilder {
 
 
     private int  findLastOperator(List<String> tokens) {
+        // Recherche des  OR
+        for (int i = tokens.size() - 1; i >= 0; i--) {
+            String token = tokens.get(i);
+            if (isOr(token)) {
+                return i;
+            }
+        }
+
+        // Recherche des  AND
+        for (int i = tokens.size() - 1; i >= 0; i--) {
+            String token = tokens.get(i);
+            if (isAnd(token)) {
+                return i;
+            }
+        }
+
+        // Recherche de  NOT(opérateur unaire)
+        for (int i = tokens.size() - 1; i >= 0; i--) {
+            String token = tokens.get(i);
+            if (isNot(token)) {
+                return i;
+            }
+        }
 
         for (int i = tokens.size() - 1; i >= 0; i--) {
             String token = tokens.get(i);
@@ -125,7 +171,7 @@ public class ExpressionBuilder {
         return isMult(s.charAt(0));
     }
     public boolean isComparison(char c1){
-        return c1 == '>' || c1 == '=' || c1 == '<';
+        return c1 == '>' || c1 == '<';
     }
     public boolean isComparison(String s){
         return isComparison(s.charAt(0)) || s.equals(">=") || s.equals("<=") || s.equals("!=");
@@ -160,11 +206,20 @@ public class ExpressionBuilder {
                 return new DivideExpression(left, right);
             case ">" :
                 return new GreaterThanExpression(left, right);
+            case "<":
+                return new LessThan(left, right);
             case "=" :
                 return new EqualsExpression(left, right);
+            case ">=" :
+                return new GreaterThanOrEqual(left, right);
+            case "<=" :
+                return new LessThanOrEqual(left, right);
+            case "!=":
+                return new NotEqualsExpression(left, right);
             default:
                 throw new IllegalArgumentException("Unknown operator: " + op);
         }
     }
-    
+
+
 }
