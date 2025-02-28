@@ -28,14 +28,7 @@ public class MySpreadsheetView extends SpreadsheetView {
 
         this.editableProperty().bind(viewModel.editableProperty());
 
-        this.editingCellProperty().addListener((observableValue, oldVal, newVal) -> {
-            if(newVal != null) {
-                System.out.println("edit cell " + ExcelConverter.rowColToExcel(newVal.getRow(), newVal.getColumn()));
-                viewModel.addAction("edit cell " + ExcelConverter.rowColToExcel(newVal.getRow(), newVal.getColumn()));
-            }
-        });
-
-        // Gérer la sélection d'une cellule
+        // 📌 Assure que la cellule sélectionnée est bien mise à jour dans le ViewModel
         this.getSelectionModel().getSelectedCells().addListener((ListChangeListener.Change<? extends TablePosition> change) -> {
             if (!change.getList().isEmpty()) {
                 TablePosition cell = change.getList().get(0);
@@ -45,11 +38,10 @@ public class MySpreadsheetView extends SpreadsheetView {
                 System.out.println("select cell " + ExcelConverter.rowColToExcel(row, column));
                 viewModel.addAction("select cell " + ExcelConverter.rowColToExcel(row, column));
 
-                // Mettre à jour la cellule sélectionnée dans le ViewModel
+                // 📌 Met à jour la cellule sélectionnée dans le ViewModel
                 viewModel.setSelectedCell(row, column);
             }
         });
-
         layoutSpreadSheet();
     }
 
