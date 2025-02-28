@@ -76,7 +76,7 @@ public class MySpreadsheetView extends SpreadsheetView {
                 // Mise à jour de la cellule lorsque la valeur change dans le modèle
                 viewModel.getCellValueProperty(finalRow, finalColumn).addListener((obs, oldVal, newVal) -> {
                     if (!Objects.equals(oldVal, newVal)) {
-                        cell.setItem(newVal); // 📌 Mise à jour manuelle
+                        cell.setItem(newVal); // Mise à jour manuelle
                     }
                 });
 
@@ -84,12 +84,10 @@ public class MySpreadsheetView extends SpreadsheetView {
                 cell.itemProperty().addListener((obs, oldVal, newVal) -> {
                     if (!Objects.equals(oldVal, newVal)) {
                         if (newVal instanceof String value) {
-                            viewModel.setCellFormula(finalRow, finalColumn, value); // 📌 Met à jour le modèle
+                            viewModel.setCellFormula(finalRow, finalColumn, value); // Met à jour le modèle
                         }
                     }
                 });
-
-
 
                 //  Quand l'utilisateur entre une formule, on la traite
                 cell.itemProperty().addListener((observableValue, oldVal, newVal) -> {

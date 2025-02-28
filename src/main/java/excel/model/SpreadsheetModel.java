@@ -32,7 +32,7 @@ public class SpreadsheetModel {
     private void addNewRow() {
         ObservableList<SpreadsheetCellModel> newRow = FXCollections.observableArrayList();
         for (int column = 0; column < columns; column++) {
-            newRow.add(new SpreadsheetCellModel("", data.size(), column));
+            newRow.add(new SpreadsheetCellModel("", data.size(), column, this));
         }
         data.add(newRow);
     }

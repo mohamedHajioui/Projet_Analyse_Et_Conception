@@ -1,9 +1,16 @@
 package excel.model;
 
+import org.controlsfx.control.spreadsheet.SpreadsheetCellEditor;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class ExpressionBuilder {
+    private final SpreadsheetModel model;
+
+    public ExpressionBuilder(SpreadsheetModel model) {
+        this.model = model;
+    }
 
     public Expression build(String strExpr){
         if (strExpr.charAt(0) == '=') {
@@ -21,18 +28,20 @@ public class ExpressionBuilder {
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
 
-            if (Character.isDigit(c) || c == '.') {
+            if (Character.isLetterOrDigit(c) || c == '.') {
                 currentToken.append(c);
-            } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '>' || c == '=' || c == '!' || c == '<') {
+            } else if ("+-*/><=!".indexOf(c) != -1) {
                 if (!currentToken.isEmpty()) {
                     tokens.add(currentToken.toString());
                     currentToken.setLength(0);
                 }
+
+                // Gérer les opérateurs composés (>=, <=, !=, ==)
                 if (i + 1 < str.length() && str.charAt(i + 1) == '=') {
                     tokens.add(String.valueOf(c) + str.charAt(i + 1));
-                    i++; // Incrémente i pour sauter l'égalité déjà traitée
+                    i++;
                 } else {
-                    tokens.add(String.valueOf(c)); // Ajoute l'opérateur simple
+                    tokens.add(String.valueOf(c));
                 }
             }
         }
@@ -48,15 +57,26 @@ public class ExpressionBuilder {
         int idxOp = findLastOperator(tokens);
         if(idxOp != -1){
             String op = tokens.get(idxOp);
-            List<String> leftTokens = new ArrayList<>(tokens.subList(0, idxOp)); //sublist -> 0 inclus, idxOp exclus
-            List<String> rightTokens = new ArrayList<>(tokens.subList(idxOp + 1, tokens.size())); //sublist -> idxOp+1 inclus, tokens .size exclus
+            List<String> leftTokens = new ArrayList<>(tokens.subList(0, idxOp));
+            List<String> rightTokens = new ArrayList<>(tokens.subList(idxOp + 1, tokens.size()));
             //recursivité sur left and right tokens
             Expression left = buildExpression(leftTokens);
             Expression right = buildExpression(rightTokens);
             return makeOpExpression(op, left, right);
 
         }
-        return new NumberExpression(Double.parseDouble(tokens.get(0)));
+        String token = tokens.get(0);
+
+        if (token.matches("[A-Z]+[0-9]+")) { // Vérifie si c'est une référence Excel (ex: A1, B3)
+            return new CellReferenceExpression(token, model);
+        }
+
+        try {
+            return new NumberExpression(Double.parseDouble(token)); // Gère les nombres
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid token: " + token);
+        }
+
     }
 
     private int indiceOp(List<String> tokens){
@@ -70,7 +90,6 @@ public class ExpressionBuilder {
 
 
     private int  findLastOperator(List<String> tokens) {
-
         for (int i = tokens.size() - 1; i >= 0; i--) {
             String token = tokens.get(i);
             if(isComparison(token) || isEquals(token)){
