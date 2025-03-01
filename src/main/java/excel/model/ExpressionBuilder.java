@@ -25,11 +25,14 @@ public class ExpressionBuilder {
 
             if (Character.isDigit(c) || c == '.') {
                 currentToken.append(c);
-            } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '>' || c == '=' || c == '!' || c == '<') {
+            }
+
+            else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '>' || c == '=' || c == '!' || c == '<') {
                 if (!currentToken.isEmpty()) {
                     tokens.add(currentToken.toString());
                     currentToken.setLength(0);
                 }
+
                 if (i + 1 < str.length() && str.charAt(i + 1) == '=') {
                     tokens.add(String.valueOf(c) + str.charAt(i + 1));
                     i++; // Incrémente i pour sauter l'égalité déjà traitée
@@ -40,26 +43,36 @@ public class ExpressionBuilder {
             else if (Character.isWhitespace(c)) {
                 if (!currentToken.isEmpty()) {
                     String token = currentToken.toString();
-                    if (Arrays.asList(keywords).contains(token)) {
-                        tokens.add(token); // Si c'est keywords, ajoute-le directement
+                    // Vérifie si c'est un logique "AND", "OR", "NOT"
+                    if (Arrays.asList(keywords).contains(token.toUpperCase())) {
+                        tokens.add(token); // Ajoute directement le mot-clé
+                    } else if (token.equalsIgnoreCase("true") || token.equalsIgnoreCase("false")) {
+                        // Si c'est "true" ou "false", ajouter un boolean
+                        tokens.add(new BooleanExpression(Boolean.parseBoolean(token)).interpret().toString());
                     } else {
-                        tokens.add(token); // Sinon, ajoute-le normalement
+                        tokens.add(token); // Sinon, ajouter le token tel quel
                     }
                     currentToken.setLength(0); // Réinitialise le StringBuilder
                 }
             }
-            // Si le caractère fait partie de keywords
             else {
                 currentToken.append(c);
             }
-
         }
 
+        // Ajouter le dernier token si il existe
         if (!currentToken.isEmpty()) {
-            tokens.add(currentToken.toString());
+            String token = currentToken.toString();
+            if (token.equalsIgnoreCase("true") || token.equalsIgnoreCase("false")) {
+                tokens.add(new BooleanExpression(Boolean.parseBoolean(token)).interpret().toString());
+            } else {
+                tokens.add(token);
+            }
         }
+
         return tokens;
     }
+
 
 
     private Expression buildExpression(List<String> tokens) {
@@ -69,34 +82,40 @@ public class ExpressionBuilder {
             List<String> leftTokens = new ArrayList<>(tokens.subList(0, idxOp));
             List<String> rightTokens = new ArrayList<>(tokens.subList(idxOp + 1, tokens.size()));
 
+            // Traitement des opérateurs logiques OR, AND, NOT
             if (isOr(op)) {
                 Expression left = buildExpression(leftTokens);
                 Expression right = buildExpression(rightTokens);
                 return new OrExpression(left, right);
             }
-
-
             else if (isAnd(op)) {
                 Expression left = buildExpression(leftTokens);
                 Expression right = buildExpression(rightTokens);
                 return new AndExpression(left, right);
             }
-
             else if (isNot(op)) {
                 Expression right = buildExpression(rightTokens);
                 return new NotExpression(right);
             }
-
             else {
-                // Sinon, l'opérateur est un opérateur arithmétique ou de comparaison
                 Expression left = buildExpression(leftTokens);
                 Expression right = buildExpression(rightTokens);
                 return makeOpExpression(op, left, right);
             }
         }
 
-        // Si aucun opérateur n'est trouvé, on retourne une expression numérique
-        return new NumberExpression(Double.parseDouble(tokens.get(0)));
+        String token = tokens.get(0);
+        if (token.equalsIgnoreCase("true")) {
+            return new BooleanExpression(true);  // Création d'une expression booléenne
+        } else if (token.equalsIgnoreCase("false")) {
+            return new BooleanExpression(false);  // Création d'une expression booléenne
+        }
+
+        try {
+            return new NumberExpression(Double.parseDouble(token));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid token: " + token);
+        }
     }
 
 
@@ -207,13 +226,13 @@ public class ExpressionBuilder {
             case ">" :
                 return new GreaterThanExpression(left, right);
             case "<":
-                return new LessThan(left, right);
+                return new LessThanExpression(left, right);
             case "=" :
                 return new EqualsExpression(left, right);
             case ">=" :
-                return new GreaterThanOrEqual(left, right);
+                return new GreaterThanOrEqualExpression(left, right);
             case "<=" :
-                return new LessThanOrEqual(left, right);
+                return new LessThanOrEqualExpression(left, right);
             case "!=":
                 return new NotEqualsExpression(left, right);
             default:

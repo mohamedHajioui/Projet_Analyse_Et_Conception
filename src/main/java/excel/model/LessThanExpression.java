@@ -1,10 +1,10 @@
 package excel.model;
 
-public class AdditionExpression extends Expression {
+public class LessThanExpression extends Expression {
     private Expression left;
     private Expression right;
 
-    public AdditionExpression(Expression left, Expression right) {
+    public LessThanExpression(Expression left, Expression right) {
         this.left = left;
         this.right = right;
     }
@@ -15,9 +15,9 @@ public class AdditionExpression extends Expression {
         Object rightValue = right.interpret();
 
         if (leftValue instanceof Double && rightValue instanceof Double) {
-            return (Double) leftValue + (Double) rightValue;
+            return (Double) leftValue < (Double) rightValue;
         } else {
-            throw new IllegalArgumentException("Incompatible types for addition.");
+            throw new IllegalArgumentException("Incompatible types for comparison.");
         }
     }
 }

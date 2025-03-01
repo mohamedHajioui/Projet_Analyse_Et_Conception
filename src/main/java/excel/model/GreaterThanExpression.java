@@ -1,19 +1,23 @@
 package excel.model;
 
-public class GreaterThanExpression extends ComparisonExpression {
-    public GreaterThanExpression(Expression left, Expression right) {
-        super(left, right);
+public class GreaterThanExpression extends Expression {
+    private Expression left;
+    private Expression right;
 
+    public GreaterThanExpression(Expression left, Expression right) {
+        this.left = left;
+        this.right = right;
     }
 
     @Override
-    public double interpret() {
-        if(getLeft().interpret() > getRight().interpret()){
-            return 1.0;
+    public Object interpret() {
+        Object leftValue = left.interpret();
+        Object rightValue = right.interpret();
+
+        if (leftValue instanceof Double && rightValue instanceof Double) {
+            return (Double) leftValue > (Double) rightValue;
+        } else {
+            throw new IllegalArgumentException("Incompatible types for comparison.");
         }
-        return 0.0;
     }
-
-
-
 }

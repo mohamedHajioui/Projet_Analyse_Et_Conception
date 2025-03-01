@@ -1,14 +1,24 @@
 package excel.model;
 
-public class SubstractionExpression extends BinaryExpression{
+public class SubstractionExpression extends Expression{
+
+    private Expression left;
+    private Expression right;
 
     public SubstractionExpression(Expression left, Expression right) {
-        super(left, right);
-
+        this.left = left;
+        this.right = right;
     }
+
     @Override
-    public double interpret() {
-        return getLeft().interpret() - getRight().interpret();
-    }
+    public Object interpret() {
+        Object leftValue = left.interpret();
+        Object rightValue = right.interpret();
 
+        if (leftValue instanceof Double && rightValue instanceof Double) {
+            return (Double) leftValue - (Double) rightValue;
+        } else {
+            throw new IllegalArgumentException("Incompatible types for substraction.");
+        }
+    }
 }

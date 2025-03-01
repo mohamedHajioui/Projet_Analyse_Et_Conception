@@ -1,18 +1,29 @@
 package excel.model;
 
-public class EqualsExpression extends BinaryExpression {
+public class EqualsExpression extends Expression {
+    private Expression left;
+    private Expression right;
 
     public EqualsExpression(Expression left, Expression right) {
-        super(left, right);
+        this.left = left;
+        this.right = right;
     }
 
     @Override
-    public double interpret() {
-        if (getLeft().equals(getRight()))
-            return 1.0;
-        return 0.0;
-    }
+    public Object interpret() {
+        Object leftValue = left.interpret();
+        Object rightValue = right.interpret();
 
+        // Handle comparison for both Double and Boolean
+        if (leftValue instanceof Double && rightValue instanceof Double) {
+            return leftValue.equals(rightValue);
+        } else if (leftValue instanceof Boolean && rightValue instanceof Boolean) {
+            return (Boolean) leftValue == (Boolean) rightValue;
+        } else {
+            throw new IllegalArgumentException("Incompatible types for comparison.");
+        }
+    }
 }
+
 
 

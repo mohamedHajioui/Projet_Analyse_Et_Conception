@@ -1,5 +1,15 @@
 package excel.model;
 
-public interface BooleanExpression {
-    boolean interpret();
+public class BooleanExpression extends Expression {
+    private boolean value;
+
+    public BooleanExpression(boolean value) {
+        this.value = value;
+    }
+
+    @Override
+    public Object interpret() {
+        return value;
+    }
 }
+

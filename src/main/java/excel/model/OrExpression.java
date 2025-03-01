@@ -1,15 +1,24 @@
 package excel.model;
 
-public class OrExpression extends BinaryExpression {
+public class OrExpression extends Expression {
+    private Expression left;
+    private Expression right;
+
     public OrExpression(Expression left, Expression right) {
-        super(left, right);
+        this.left = left;
+        this.right = right;
     }
 
     @Override
-    public double interpret() {
-        if (getLeft().interpret() != 0.0 || getRight().interpret() != 0.0) {
-            return 1.0;
+    public Object interpret() {
+        Object leftValue = left.interpret();
+        Object rightValue = right.interpret();
+
+        if (leftValue instanceof Boolean && rightValue instanceof Boolean) {
+            return (Boolean) leftValue || (Boolean) rightValue;
+        } else {
+            throw new IllegalArgumentException("Incompatible types for OR operation.");
         }
-        return 0.0;
     }
 }
+

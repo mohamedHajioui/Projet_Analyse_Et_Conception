@@ -1,6 +1,5 @@
 package excel.model;
 
-
 public class NotExpression extends Expression {
     private Expression operand;
 
@@ -9,11 +8,14 @@ public class NotExpression extends Expression {
     }
 
     @Override
-    public double interpret() {
-        if (operand.interpret() == 0.0) {
-            return 1.0;
+    public Object interpret() {
+        Object operandValue = operand.interpret();
+
+        if (operandValue instanceof Boolean) {
+            return !(Boolean) operandValue;
+        } else {
+            throw new IllegalArgumentException("Incompatible type for NOT operation.");
         }
-        return 0.0;
     }
 }
 
