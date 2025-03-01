@@ -1,12 +1,18 @@
 package excel.model;
 
+import org.controlsfx.control.spreadsheet.SpreadsheetCellEditor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class ExpressionBuilder {
+    private final SpreadsheetModel model;
 
-    public Expression build(String strExpr){
+    public ExpressionBuilder(SpreadsheetModel model) {
+        this.model = model;
+    }
+
+    public Expression build(String strExpr) {
         if (strExpr.charAt(0) == '=') {
             List<String> tokens = tokenize(strExpr.substring(1));
             System.out.println(tokens);
@@ -22,45 +28,52 @@ public class ExpressionBuilder {
 
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
-
-            if (Character.isDigit(c) || c == '.') {
+            if (Character.isLetterOrDigit(c) || c == '.') {
                 currentToken.append(c);
-            } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '>' || c == '=' || c == '!' || c == '<') {
+
+            } else if ("+-*/><=!".indexOf(c) != -1) {
                 if (!currentToken.isEmpty()) {
                     tokens.add(currentToken.toString());
                     currentToken.setLength(0);
                 }
+                // Gérer les opérateurs composés (>=, <=, !=, ==)
                 if (i + 1 < str.length() && str.charAt(i + 1) == '=') {
                     tokens.add(String.valueOf(c) + str.charAt(i + 1));
-                    i++; // Incrémente i pour sauter l'égalité déjà traitée
+                    i++;
                 } else {
-                    tokens.add(String.valueOf(c)); // Ajoute l'opérateur simple
+                    tokens.add(String.valueOf(c));
                 }
-            }
-            else if (Character.isWhitespace(c)) {
+            } else if (Character.isWhitespace(c)) {
                 if (!currentToken.isEmpty()) {
                     String token = currentToken.toString();
-                    if (Arrays.asList(keywords).contains(token)) {
-                        tokens.add(token); // Si c'est keywords, ajoute-le directement
+                    // Vérifie si c'est un logique "AND", "OR", "NOT"
+                    if (Arrays.asList(keywords).contains(token.toUpperCase())) {
+                        tokens.add(token); // Ajoute directement le mot-clé
+                    } else if (token.equalsIgnoreCase("true") || token.equalsIgnoreCase("false")) {
+                        // Si c'est "true" ou "false", ajouter un boolean
+                        tokens.add(new BooleanExpression(Boolean.parseBoolean(token)).interpret().toString());
                     } else {
-                        tokens.add(token); // Sinon, ajoute-le normalement
+                        tokens.add(token); // Sinon, ajouter le token tel quel
                     }
                     currentToken.setLength(0); // Réinitialise le StringBuilder
                 }
-            }
-            // Si le caractère fait partie de keywords
-            else {
+            } else {
                 currentToken.append(c);
             }
-
         }
 
+        // Ajouter le dernier token si il existe
         if (!currentToken.isEmpty()) {
-            tokens.add(currentToken.toString());
+            String token = currentToken.toString();
+            if (token.equalsIgnoreCase("true") || token.equalsIgnoreCase("false")) {
+                tokens.add(new BooleanExpression(Boolean.parseBoolean(token)).interpret().toString());
+            } else {
+                tokens.add(token);
+            }
         }
+
         return tokens;
     }
-
 
     private Expression buildExpression(List<String> tokens) {
         int idxOp = findLastOperator(tokens);
@@ -69,49 +82,49 @@ public class ExpressionBuilder {
             List<String> leftTokens = new ArrayList<>(tokens.subList(0, idxOp));
             List<String> rightTokens = new ArrayList<>(tokens.subList(idxOp + 1, tokens.size()));
 
+            // Traitement des opérateurs logiques OR, AND, NOT
             if (isOr(op)) {
                 Expression left = buildExpression(leftTokens);
                 Expression right = buildExpression(rightTokens);
                 return new OrExpression(left, right);
-            }
-
-
-            else if (isAnd(op)) {
+            } else if (isAnd(op)) {
                 Expression left = buildExpression(leftTokens);
                 Expression right = buildExpression(rightTokens);
                 return new AndExpression(left, right);
-            }
-
-            else if (isNot(op)) {
+            } else if (isNot(op)) {
                 Expression right = buildExpression(rightTokens);
                 return new NotExpression(right);
-            }
-
-            else {
-                // Sinon, l'opérateur est un opérateur arithmétique ou de comparaison
+            } else {
                 Expression left = buildExpression(leftTokens);
                 Expression right = buildExpression(rightTokens);
                 return makeOpExpression(op, left, right);
             }
         }
 
-        // Si aucun opérateur n'est trouvé, on retourne une expression numérique
-        return new NumberExpression(Double.parseDouble(tokens.get(0)));
-    }
+        String token = tokens.get(0);
 
-
-    private int indiceOp(List<String> tokens){
-        for (int i = 0; i < tokens.size(); i++){
-            if ("+-*/".contains(tokens.get(i))){
-                return i;
-            }
+        // Gestion des références de cellules (par exemple A1)
+        if (token.matches("[A-Z]+[0-9]+")) {
+            return new CellReferenceExpression(token, model);
         }
-        return -1;
+
+        // Gestion des booléens true/false
+        if (token.equalsIgnoreCase("true")) {
+            return new BooleanExpression(true);  // Création d'une expression booléenne
+        } else if (token.equalsIgnoreCase("false")) {
+            return new BooleanExpression(false);  // Création d'une expression booléenne
+        }
+
+        // Gestion des nombres
+        try {
+            return new NumberExpression(Double.parseDouble(token)); // Gère les nombres
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid token: " + token);
+        }
     }
 
-
-    private int  findLastOperator(List<String> tokens) {
-        // Recherche des  OR
+    private int findLastOperator(List<String> tokens) {
+        // Recherche des OR
         for (int i = tokens.size() - 1; i >= 0; i--) {
             String token = tokens.get(i);
             if (isOr(token)) {
@@ -119,7 +132,7 @@ public class ExpressionBuilder {
             }
         }
 
-        // Recherche des  AND
+        // Recherche des AND
         for (int i = tokens.size() - 1; i >= 0; i--) {
             String token = tokens.get(i);
             if (isAnd(token)) {
@@ -127,7 +140,7 @@ public class ExpressionBuilder {
             }
         }
 
-        // Recherche de  NOT(opérateur unaire)
+        // Recherche de NOT(opérateur unaire)
         for (int i = tokens.size() - 1; i >= 0; i--) {
             String token = tokens.get(i);
             if (isNot(token)) {
@@ -135,67 +148,64 @@ public class ExpressionBuilder {
             }
         }
 
+        // Recherche des opérateurs de comparaison et d'égalité
         for (int i = tokens.size() - 1; i >= 0; i--) {
             String token = tokens.get(i);
-            if(isComparison(token) || isEquals(token)){
+            if (isComparison(token) || isEquals(token)) {
                 return i;
             }
         }
 
-        // On cherche de droite à gauche pour respecter l'associativité
+        // Recherche des opérateurs arithmétiques (+, -, *, /)
         for (int i = tokens.size() - 1; i >= 0; i--) {
             String token = tokens.get(i);
             if (isPlusOrMinus(token)) {
                 return i;
             }
         }
-        for (int i = tokens.size()-1; i >= 0; i--) {
+
+        // Recherche des opérateurs mult et div (*, /)
+        for (int i = tokens.size() - 1; i >= 0; i--) {
             String token = tokens.get(i);
-            if(isMult(token)){
+            if (isMult(token)) {
                 return i;
             }
         }
+
         return -1;
     }
 
-    public boolean isPlusOrMinus(char c) {
-        return c == '+' || c == '-';
-    }
+    // Méthodes pour identifier les opérateurs
     public boolean isPlusOrMinus(String s) {
-        return isPlusOrMinus(s.charAt(0));
-    }
-    public boolean isMult(char c) {
-        return c == '*' || c == '/';
-    }
-    public boolean isMult (String s){
-        return isMult(s.charAt(0));
-    }
-    public boolean isComparison(char c1){
-        return c1 == '>' || c1 == '<';
-    }
-    public boolean isComparison(String s){
-        return isComparison(s.charAt(0)) || s.equals(">=") || s.equals("<=") || s.equals("!=");
-    }
-    public boolean isNot(String c){
-        return c.equals("not");
-    }
-    public boolean isAnd(String c){
-        return c.equals("and");
-    }
-    public boolean isOr(String c){
-        return c.equals("or");
+        return s.equals("+") || s.equals("-");
     }
 
-    public boolean isEquals(char c){
-        return c == '=';
+    public boolean isMult(String s) {
+        return s.equals("*") || s.equals("/");
     }
 
-    public boolean isEquals(String s){
-        return isEquals(s.charAt(0));
+    public boolean isComparison(String s) {
+        return s.equals(">") || s.equals("<") || s.equals(">=") || s.equals("<=") || s.equals("==") || s.equals("!=");
     }
 
-    private Expression makeOpExpression(String op, Expression left, Expression right){
-        switch (op){
+    public boolean isEquals(String s) {
+        return s.equals("=");
+    }
+
+    public boolean isNot(String s) {
+        return s.equalsIgnoreCase("not");
+    }
+
+    public boolean isAnd(String s) {
+        return s.equalsIgnoreCase("and");
+    }
+
+    public boolean isOr(String s) {
+        return s.equalsIgnoreCase("or");
+    }
+
+    private Expression makeOpExpression(String op, Expression left, Expression right) {
+        switch (op) {
             case "+":
                 return new AdditionExpression(left, right);
             case "-":
@@ -204,22 +214,20 @@ public class ExpressionBuilder {
                 return new MultiplicationExpression(left, right);
             case "/":
                 return new DivideExpression(left, right);
-            case ">" :
+            case ">":
                 return new GreaterThanExpression(left, right);
             case "<":
-                return new LessThan(left, right);
-            case "=" :
+                return new LessThanExpression(left, right);
+            case "=":
                 return new EqualsExpression(left, right);
-            case ">=" :
-                return new GreaterThanOrEqual(left, right);
-            case "<=" :
-                return new LessThanOrEqual(left, right);
+            case ">=":
+                return new GreaterThanOrEqualExpression(left, right);
+            case "<=":
+                return new LessThanOrEqualExpression(left, right);
             case "!=":
                 return new NotEqualsExpression(left, right);
             default:
                 throw new IllegalArgumentException("Unknown operator: " + op);
         }
     }
-
-
 }
