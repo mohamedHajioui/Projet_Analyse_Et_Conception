@@ -7,12 +7,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
+import javax.print.DocFlavor;
+
 public class SpreadsheetViewModel {
     private final SpreadsheetModel model;
     private final ObjectProperty<SpreadsheetCellModel> selectedCell = new SimpleObjectProperty<>();
     private final SimpleBooleanProperty editableProperty = new SimpleBooleanProperty(true);
     private final ObservableList<String> actions = FXCollections.observableArrayList();
     private final StringProperty lastAction = new SimpleStringProperty("");
+    private final StringProperty selectedCellContent = new SimpleStringProperty("");
 
     public SpreadsheetViewModel(SpreadsheetModel model) {
         this.model = model;
@@ -28,8 +31,15 @@ public class SpreadsheetViewModel {
         SpreadsheetCellModel cell = model.getCell(row, column);
         if (cell != null) {
             selectedCell.set(cell);
+            selectedCellContent.set(cell.getFormulaProperty().isEmpty() ? cell.getValueProperty() : cell.getFormulaProperty());
         }
     }
+
+    public StringProperty selectedCellContentProperty() {
+        return selectedCellContent;
+    }
+
+
 
     public void updateSelectedCell(String newValue) {
         if (selectedCell.get() != null) {
@@ -38,12 +48,12 @@ public class SpreadsheetViewModel {
     }
 
     public StringProperty selectedCellFormulaProperty() {
-        return selectedCell.get() != null ? selectedCell.get().formulaProperty() : new SimpleStringProperty("");
+        if (selectedCell.get() != null) {
+            return selectedCell.get().formulaProperty(); // 📌 Retourne la formule brute stockée
+        }
+        return new SimpleStringProperty(""); // 📌 Évite les erreurs si aucune cellule n'est sélectionnée
     }
 
-    public ReadOnlyObjectProperty<String> selectedCellValueProperty() {
-        return selectedCell.get() != null ? selectedCell.get().valueProperty() : new SimpleObjectProperty<>("");
-    }
 
     private SpreadsheetCellViewModel getCellViewModel(int line, int column) {
         return new SpreadsheetCellViewModel(model.getCell(line, column));

@@ -17,7 +17,7 @@ public class TextBarView extends HBox {
         HBox.setHgrow(formulaField, Priority.ALWAYS);
 
         // Liaison bidirectionnelle avec la formule de la cellule sélectionnée
-        formulaField.textProperty().bindBidirectional(viewModel.selectedCellFormulaProperty());
+        formulaField.textProperty().bindBidirectional(viewModel.selectedCellContentProperty());
 
         // Lorsqu'on appuie sur Entrée, on met à jour la cellule sélectionnée
         formulaField.setOnAction(e -> {

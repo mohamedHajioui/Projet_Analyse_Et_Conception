@@ -28,14 +28,7 @@ public class MySpreadsheetView extends SpreadsheetView {
 
         this.editableProperty().bind(viewModel.editableProperty());
 
-        this.editingCellProperty().addListener((observableValue, oldVal, newVal) -> {
-            if(newVal != null) {
-                System.out.println("edit cell " + ExcelConverter.rowColToExcel(newVal.getRow(), newVal.getColumn()));
-                viewModel.addAction("edit cell " + ExcelConverter.rowColToExcel(newVal.getRow(), newVal.getColumn()));
-            }
-        });
-
-        // Gérer la sélection d'une cellule
+        // 📌 Assure que la cellule sélectionnée est bien mise à jour dans le ViewModel
         this.getSelectionModel().getSelectedCells().addListener((ListChangeListener.Change<? extends TablePosition> change) -> {
             if (!change.getList().isEmpty()) {
                 TablePosition cell = change.getList().get(0);
@@ -45,11 +38,10 @@ public class MySpreadsheetView extends SpreadsheetView {
                 System.out.println("select cell " + ExcelConverter.rowColToExcel(row, column));
                 viewModel.addAction("select cell " + ExcelConverter.rowColToExcel(row, column));
 
-                // Mettre à jour la cellule sélectionnée dans le ViewModel
+                // 📌 Met à jour la cellule sélectionnée dans le ViewModel
                 viewModel.setSelectedCell(row, column);
             }
         });
-
         layoutSpreadSheet();
     }
 
@@ -76,7 +68,7 @@ public class MySpreadsheetView extends SpreadsheetView {
                 // Mise à jour de la cellule lorsque la valeur change dans le modèle
                 viewModel.getCellValueProperty(finalRow, finalColumn).addListener((obs, oldVal, newVal) -> {
                     if (!Objects.equals(oldVal, newVal)) {
-                        cell.setItem(newVal); // 📌 Mise à jour manuelle
+                        cell.setItem(newVal); // Mise à jour manuelle
                     }
                 });
 
@@ -84,12 +76,10 @@ public class MySpreadsheetView extends SpreadsheetView {
                 cell.itemProperty().addListener((obs, oldVal, newVal) -> {
                     if (!Objects.equals(oldVal, newVal)) {
                         if (newVal instanceof String value) {
-                            viewModel.setCellFormula(finalRow, finalColumn, value); // 📌 Met à jour le modèle
+                            viewModel.setCellFormula(finalRow, finalColumn, value); // Met à jour le modèle
                         }
                     }
                 });
-
-
 
                 //  Quand l'utilisateur entre une formule, on la traite
                 cell.itemProperty().addListener((observableValue, oldVal, newVal) -> {

@@ -9,10 +9,12 @@ public class SpreadsheetCellModel {
     private final SimpleObjectProperty<String> valueProperty = new SimpleObjectProperty<>();
     private final int row;
     private final int column;
+    private final SpreadsheetModel model;
 
-    public SpreadsheetCellModel(String value, int row, int column) {
+    public SpreadsheetCellModel(String value, int row, int column, SpreadsheetModel model) {
         this.row = row;
         this.column = column;
+        this.model = model;
         this.formulaProperty.set(value);
         this.valueProperty.set(value);
         valueProperty.addListener((obs, oldVal, newVal) -> {
@@ -22,12 +24,10 @@ public class SpreadsheetCellModel {
 
     public void setFormula(String formula){
         System.out.println("DEBUG : setFormula() appelé avec " + formula);
-
         this.formulaProperty.set(formula);
 
         if (formula.startsWith("=")) {
-            Expression expr = new ExpressionBuilder().build(formula);
-
+            Expression expr = new ExpressionBuilder(model).build(formula);
             if (expr != null) {
                 String result = String.valueOf(expr.interpret());
                 System.out.println("DEBUG : Résultat calculé = " + result);
