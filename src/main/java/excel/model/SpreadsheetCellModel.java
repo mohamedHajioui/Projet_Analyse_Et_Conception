@@ -1,12 +1,13 @@
 package excel.model;
 
 import excel.tools.ExcelConverter;
-import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.*;
 
 public class SpreadsheetCellModel {
-    private final StringProperty formulaProperty = new SimpleStringProperty();
-    private final SimpleObjectProperty<String> valueProperty = new SimpleObjectProperty<>();
+    private final StringProperty formulaProperty = new SimpleStringProperty(""); // Texte de la formule
+    private final StringBinding valueBinding; // Valeur calculée de la cellule sous forme de String
     private final int row;
     private final int column;
     private final SpreadsheetModel model;
@@ -16,67 +17,65 @@ public class SpreadsheetCellModel {
         this.column = column;
         this.model = model;
         this.formulaProperty.set(value);
-        this.valueProperty.set(value);
-        valueProperty.addListener((obs, oldVal, newVal) -> {
-            System.out.println("Mise à jour affichage : " + newVal);
-        });
+        this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
     }
 
-    public void setFormula(String formula){
-        System.out.println("DEBUG : setFormula() appelé avec " + formula);
-        this.formulaProperty.set(formula);
-
+    // Calculer la valeur de la cellule en fonction de la formule
+    private String calculateValue() {
+        String formula = formulaProperty.get();
         if (formula.startsWith("=")) {
             Expression expr = new ExpressionBuilder(model).build(formula);
             if (expr != null) {
-                String result = String.valueOf(expr.interpret());
-                System.out.println("DEBUG : Résultat calculé = " + result);
-                this.valueProperty.set(result);
+                return String.valueOf(expr.interpret());
             } else {
-                System.out.println("DEBUG : Erreur dans le calcul");
-                this.valueProperty.set("ERROR");
+                return "ERROR";
             }
         } else {
-            this.valueProperty.set(formula);
+            return formula; // Si ce n'est pas une formule, on retourne la valeur brute
         }
     }
 
 
-
-
-
-    public ReadOnlyObjectProperty<String> valueProperty(){
-        return this.valueProperty;
+    public StringBinding valueProperty() {
+        return valueBinding;
     }
 
-    public void set(String value){
-        this.valueProperty.set(value);
+    public String getValue() {
+        return valueBinding.get();
     }
 
-    void bindBidirectional (){
-        this.formulaProperty.bindBidirectional(this.valueProperty);
+    public String getFormula() {
+        return formulaProperty.get();
     }
 
-    public String toString(){
-        return "cell " + ExcelConverter.rowColToExcel(this.row, this.column)
-                + " (row " + this.row + ", column " + this.column + ") = \"" + this.valueProperty.get() + "\"";
+    public void setFormula(String formula) {
+        this.formulaProperty.set(formula);
+    }
+
+    public StringBinding valueBindingProperty() {
+        return valueBinding;  // Exposer le StringBinding de la valeur
     }
 
     public String getFormulaProperty() {
         return formulaProperty.get();
     }
 
+
+    public String getValueBinding() {
+        return valueBinding.get();
+    }
+
+    @Override
+    public String toString() {
+        return "cell " + ExcelConverter.rowColToExcel(this.row, this.column)
+                + " (row " + this.row + ", column " + this.column + ") = \"" + this.valueBinding.get() + "\"";
+    }
+
     public StringProperty formulaProperty() {
         return formulaProperty;
     }
 
-    public String getValueProperty() {
-        return valueProperty.get();
-    }
-
     public SimpleObjectProperty<String> valuePropertyProperty() {
-        return valueProperty;
+        return new SimpleObjectProperty<>(getValue());
     }
-
-
 }

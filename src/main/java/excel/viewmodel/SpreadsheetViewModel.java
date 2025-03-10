@@ -1,104 +1,82 @@
 package excel.viewmodel;
 
-import excel.model.SpreadsheetCellModel;
 import excel.model.SpreadsheetModel;
 import javafx.beans.property.*;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 
-import javax.print.DocFlavor;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpreadsheetViewModel {
-    private final SpreadsheetModel model;
-    private final ObjectProperty<SpreadsheetCellModel> selectedCell = new SimpleObjectProperty<>();
-    private final SimpleBooleanProperty editableProperty = new SimpleBooleanProperty(true);
-    private final ObservableList<String> actions = FXCollections.observableArrayList();
-    private final StringProperty lastAction = new SimpleStringProperty("");
-    private final StringProperty selectedCellContent = new SimpleStringProperty("");
+    private final int NB_ROW, NB_COL;
+    private final List<SpreadsheetCellViewModel> cellVMs = new ArrayList<>(); // Liste des VM associés aux cellules
+    private final ObjectProperty<SpreadsheetCellViewModel> selectedCell = new SimpleObjectProperty<>(); // Cellule sélectionnée
+    private final StringProperty selectedCellContent = new SimpleStringProperty(""); // Le contenu de la cellule sélectionnée (formule ou valeur)
+    private final StringProperty selectedCellFormula = new SimpleStringProperty(""); // Formule brute de la cellule sélectionnée
 
     public SpreadsheetViewModel(SpreadsheetModel model) {
-        this.model = model;
+        this.NB_ROW = model.getRowCount();
+        this.NB_COL = model.getColumnCount();
 
-        actions.addListener((ListChangeListener<String>) c -> {
-            if (!actions.isEmpty()) {
-                lastAction.set(actions.get(actions.size() - 1));
+        for (int i = 0; i < NB_ROW; i++) {
+            for (int j = 0; j < NB_COL; j++) {
+                cellVMs.add(new SpreadsheetCellViewModel(model.getCell(i, j)));
             }
-        });
-    }
-
-    public void setSelectedCell(int row, int column) {
-        SpreadsheetCellModel cell = model.getCell(row, column);
-        if (cell != null) {
-            selectedCell.set(cell);
-            selectedCellContent.set(cell.getFormulaProperty().isEmpty() ? cell.getValueProperty() : cell.getFormulaProperty());
         }
     }
+
+    // Récuperer le SpreadsheetCellViewModel associé à une cellule donnée
+    public SpreadsheetCellViewModel getCellViewModel(int line, int column) {
+        return cellVMs.get(line * NB_COL + column);
+    }
+
+
+    public int getRowCount() {
+        return NB_ROW;
+    }
+
+    public int getColumnCount() {
+        return NB_COL;
+    }
+
+    public String getCellValue(int line, int col) {
+        return getCellViewModel(line, col).getCellValue(); // Accède à la valeur de la cellule
+    }
+
+    public void setCellValue(int line, int column, String value) {
+        getCellViewModel(line, column).setCellValue(value); // Met à jour la valeur de la cellule
+    }
+
 
     public StringProperty selectedCellContentProperty() {
         return selectedCellContent;
     }
 
+    // Gère la cellule sélectionnée et met à jour selectedCellContent
+    public void setSelectedCell(int row, int col) {
+        SpreadsheetCellViewModel cellVM = getCellViewModel(row, col);
+        selectedCell.set(cellVM); // Met à jour la cellule sélectionnée dans le ViewModel
 
+        // Met à jour le contenu de la cellule sélectionnée dans selectedCellContent
+        selectedCellContent.set(cellVM.getFormula()); // On affiche la formule brute
+        selectedCellFormula.set(cellVM.getFormula()); // On met à jour la formule dans selectedCellFormula
 
+    }
+
+    // Met à jour le contenu de la cellule sélectionnée dans le modèle avec la nouvelle valeur
     public void updateSelectedCell(String newValue) {
         if (selectedCell.get() != null) {
-            selectedCell.get().setFormula(newValue);
+            selectedCell.get().setFormula(newValue); // Met à jour la formule de la cellule
+            selectedCellContent.set(newValue); // Met à jour le contenu dans selectedCellContent
+            selectedCellFormula.set(newValue); // Met à jour la formule dans selectedCellFormula
         }
     }
+
+    public ObjectProperty<SpreadsheetCellViewModel> selectedCellProperty() {
+        return selectedCell;
+    }
+
 
     public StringProperty selectedCellFormulaProperty() {
-        if (selectedCell.get() != null) {
-            return selectedCell.get().formulaProperty(); // 📌 Retourne la formule brute stockée
-        }
-        return new SimpleStringProperty(""); // 📌 Évite les erreurs si aucune cellule n'est sélectionnée
+        return selectedCellFormula; // Expose la formule brute de la cellule sélectionnée
     }
-
-
-    private SpreadsheetCellViewModel getCellViewModel(int line, int column) {
-        return new SpreadsheetCellViewModel(model.getCell(line, column));
-    }
-
-    public int getRowCount() {
-        return model.getRowCount();
-    }
-
-    public int getColumnCount() {
-        return model.getColumnCount();
-    }
-
-    public ReadOnlyObjectProperty<String> getCellValueProperty(int line, int column) {
-        return model.getCell(line, column).valueProperty();
-    }
-
-    public void setCellValue(int line, int column, String value) {
-        getCellViewModel(line, column).setCellValue(value);
-    }
-
-    public ReadOnlyBooleanProperty editableProperty() {
-        return this.editableProperty;
-    }
-
-    public void toggleEditable() {
-        this.editableProperty.set(this.editableProperty.not().get());
-    }
-
-    public boolean addAction(String action) {
-        return actions.add(action);
-    }
-
-    public void setCellFormula(int row, int column, String formula) {
-        SpreadsheetCellModel cell = model.getCell(row, column);
-        if (cell != null) {
-            cell.setFormula(formula);
-        }
-    }
-
-
-
-
-
-
-
 }
-

@@ -17,7 +17,7 @@ public class CellReferenceExpression extends Expression {
         int[] coords = ExcelConverter.excelToRowCol(cellRef);
         SpreadsheetCellModel cell = model.getCell(coords[0], coords[1]);
 
-        String value = cell.getValueProperty();
+        String value = cell.getValueBinding();
 
         // Si la valeur est numérique, on la retourne en tant que Double
         try {

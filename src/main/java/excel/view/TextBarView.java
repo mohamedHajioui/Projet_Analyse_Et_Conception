@@ -16,13 +16,23 @@ public class TextBarView extends HBox {
         formulaField.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(formulaField, Priority.ALWAYS);
 
-        // Liaison bidirectionnelle avec la formule de la cellule sélectionnée
-        formulaField.textProperty().bindBidirectional(viewModel.selectedCellContentProperty());
+        // Liaison bidirectionnelle avec la formule brute de la cellule sélectionnée
+        formulaField.textProperty().bindBidirectional(viewModel.selectedCellFormulaProperty());
 
         // Lorsqu'on appuie sur Entrée, on met à jour la cellule sélectionnée
         formulaField.setOnAction(e -> {
-            viewModel.updateSelectedCell(formulaField.getText());
+            viewModel.updateSelectedCell(formulaField.getText()); // Met à jour la cellule avec la nouvelle formule
         });
+
         this.getChildren().add(formulaField);
+
+        // Listener pour mettre à jour la TextField lorsqu'une nouvelle cellule est sélectionnée
+        viewModel.selectedCellProperty().addListener((obs, oldCell, newCell) -> {
+            if (newCell != null) {
+                // Met à jour la TextField avec la formule brute de la nouvelle cellule sélectionnée
+                formulaField.setText(viewModel.selectedCellFormulaProperty().get());
+            }
+        });
+
     }
 }

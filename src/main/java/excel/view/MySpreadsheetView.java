@@ -1,50 +1,29 @@
 package excel.view;
 
-import excel.tools.ExcelConverter;
+import excel.viewmodel.SpreadsheetCellViewModel;
 import excel.viewmodel.SpreadsheetViewModel;
+import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.scene.control.TablePosition;
 import org.controlsfx.control.spreadsheet.GridBase;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
 import org.controlsfx.control.spreadsheet.SpreadsheetView;
-
-import java.util.Objects;
-
 
 public class MySpreadsheetView extends SpreadsheetView {
     private static final int CELL_PREF_WIDTH = 150;
     private final SpreadsheetViewModel viewModel;
     private final GridBase grid;
 
+    private SpreadsheetCell selectedCell = null; // Référence vers la cellule sélectionnée
 
     public MySpreadsheetView(SpreadsheetViewModel viewModel) {
         this.viewModel = viewModel;
-
         this.grid = createGridAndBindings();
         this.setGrid(this.grid);
-
-        this.editableProperty().bind(viewModel.editableProperty());
-
-        // 📌 Assure que la cellule sélectionnée est bien mise à jour dans le ViewModel
-        this.getSelectionModel().getSelectedCells().addListener((ListChangeListener.Change<? extends TablePosition> change) -> {
-            if (!change.getList().isEmpty()) {
-                TablePosition cell = change.getList().get(0);
-                int row = cell.getRow();
-                int column = cell.getColumn();
-
-                System.out.println("select cell " + ExcelConverter.rowColToExcel(row, column));
-                viewModel.addAction("select cell " + ExcelConverter.rowColToExcel(row, column));
-
-                // 📌 Met à jour la cellule sélectionnée dans le ViewModel
-                viewModel.setSelectedCell(row, column);
-            }
-        });
+        configEditLogic();
         layoutSpreadSheet();
     }
-
 
     private void layoutSpreadSheet() {
         for (int column = 0; column < grid.getColumnCount(); column++) {
@@ -54,42 +33,15 @@ public class MySpreadsheetView extends SpreadsheetView {
 
     private GridBase createGridAndBindings() {
         GridBase grid = new GridBase(viewModel.getRowCount(), viewModel.getColumnCount());
-
         ObservableList<ObservableList<SpreadsheetCell>> rows = FXCollections.observableArrayList();
 
         for (int row = 0; row < grid.getRowCount(); ++row) {
             final ObservableList<SpreadsheetCell> list = FXCollections.observableArrayList();
             for (int column = 0; column < grid.getColumnCount(); ++column) {
                 SpreadsheetCell cell = SpreadsheetCellType.STRING.createCell(row, column, 1, 1, "");
-
-                int finalRow = row;
-                int finalColumn = column;
-
-                // Mise à jour de la cellule lorsque la valeur change dans le modèle
-                viewModel.getCellValueProperty(finalRow, finalColumn).addListener((obs, oldVal, newVal) -> {
-                    if (!Objects.equals(oldVal, newVal)) {
-                        cell.setItem(newVal); // Mise à jour manuelle
-                    }
-                });
-
-                // Lorsque l'utilisateur édite une cellule
-                cell.itemProperty().addListener((obs, oldVal, newVal) -> {
-                    if (!Objects.equals(oldVal, newVal)) {
-                        if (newVal instanceof String value) {
-                            viewModel.setCellFormula(finalRow, finalColumn, value); // Met à jour le modèle
-                        }
-                    }
-                });
-
-                //  Quand l'utilisateur entre une formule, on la traite
-                cell.itemProperty().addListener((observableValue, oldVal, newVal) -> {
-                    if (!Objects.equals(oldVal, newVal)) {
-                        if (newVal instanceof String value) {
-                            viewModel.setCellFormula(finalRow, finalColumn, value);
-                        }
-                    }
-                });
-
+                SpreadsheetCellViewModel cellVM = viewModel.getCellViewModel(row, column); // On récupère le VM de la cellule
+                cellVM.setCellContentProperty(cell.itemProperty()); // On passe la ref de itemProperty au VM
+                cell.itemProperty().set(viewModel.getCellValue(row, column));
                 list.add(cell);
             }
             rows.add(list);
@@ -98,4 +50,42 @@ public class MySpreadsheetView extends SpreadsheetView {
         return grid;
     }
 
+    private void configEditLogic() {
+        editingCellProperty().addListener((observable, oldValue, newValue) -> {
+            boolean editMode = newValue != null; // true si la cellule est en mode édition
+            if (editMode) {
+                changeEditionMode(true); // Activer le mode édition pour le VM
+            }
+        });
+
+        // Listener pour gérer la sélection d'une cellule
+        this.getSelectionModel().getSelectedCells().addListener((InvalidationListener) il -> {
+            if (getSelectionModel().getSelectedCells().isEmpty()) {
+                changeEditionMode(false);
+                this.selectedCell = null;
+            } else {
+                var tablePosition = getSelectionModel().getSelectedCells().get(0);
+                int row = tablePosition.getRow(), col = tablePosition.getColumn();
+                viewModel.setSelectedCell(row, col);
+                updateSelectedCellInView(row, col);
+            }
+        });
+    }
+
+    // Quand une nouvelle cellule est sélectionnée, on désactive le mode édition de l'ancienne cellule
+    private void updateSelectedCellInView(int row, int col) {
+        changeEditionMode(false);
+        this.selectedCell = this.grid.getRows().get(row).get(col);
+    }
+
+    // Méthode qui prévient le VM de la cellule sélectionnée que le mode d'édition a changé
+    private void changeEditionMode(boolean inEdition) {
+        if (selectedCell == null) return; // Si aucune cellule n'est sélectionnée, rien à faire
+
+        // On récupère le VM de la cellule sélectionnée
+        SpreadsheetCellViewModel cellVM = viewModel.getCellViewModel(selectedCell.getRow(), selectedCell.getColumn());
+
+        // On indique au VM le mode d'édition
+        cellVM.setEditionMode(inEdition);
+    }
 }
