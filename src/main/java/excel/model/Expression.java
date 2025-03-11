@@ -1,6 +1,6 @@
 package excel.model;
 
-public abstract class Expression {
+public abstract class Expression{
     // La méthode interpret renvoie un Object
     public abstract Object interpret();
 

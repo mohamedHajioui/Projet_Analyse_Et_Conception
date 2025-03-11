@@ -20,20 +20,41 @@ public class SpreadsheetCellModel {
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
     }
 
-    // Calculer la valeur de la cellule en fonction de la formule
     private String calculateValue() {
-        String formula = formulaProperty.get();
+        String formula = formulaProperty.get().trim();
+
+        // Si la formule est vide, retourner une chaîne vide
+        if (formula.isEmpty()) {
+            return "";
+        }
+
+        // Si la formule commence par '=', traiter comme une expression
         if (formula.startsWith("=")) {
-            Expression expr = new ExpressionBuilder(model).build(formula);
+            String expression = formula.trim();
+
+            // Vérifier si l'expression se termine par un opérateur
+
+            if (expression.matches(".*[+\\-*/%<>=!&|^]$")) {
+                return "SYNTAX_ERROR";
+            }
+
+            // Construire et évaluer l'expression
+            Expression expr = new ExpressionBuilder(model).build(expression);
             if (expr != null) {
-                return String.valueOf(expr.interpret());
+                try {
+                    return String.valueOf(expr.interpret());
+                } catch (Exception e) {
+                    return "SYNTAX_ERROR";
+                }
             } else {
-                return "ERROR";
+                return "SYNTAX_ERROR";
             }
         } else {
-            return formula; // Si ce n'est pas une formule, on retourne la valeur brute
+            // Si la formule ne commence pas par '=', la traiter comme une chaîne de caractères brute
+            return formula;
         }
     }
+
 
 
     public StringBinding valueProperty() {
