@@ -5,12 +5,17 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
+
 public class SpreadsheetCellModel {
     private final StringProperty formulaProperty = new SimpleStringProperty(""); // Texte de la formule
     private final StringBinding valueBinding; // Valeur calculée de la cellule sous forme de String
     private final int row;
     private final int column;
     private final SpreadsheetModel model;
+    private final Set<SpreadsheetCellModel> dependentCells = new HashSet<>();
 
     public SpreadsheetCellModel(String value, int row, int column, SpreadsheetModel model) {
         this.row = row;
@@ -18,7 +23,12 @@ public class SpreadsheetCellModel {
         this.model = model;
         this.formulaProperty.set(value);
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
+
+        //ajout d'un listener pour notifier de changement de valeur
+        this.valueBinding.addListener((observable, oldValue, newValue) -> {notifyDependentCells(); });
+
     }
+
 
     // Calculer la valeur de la cellule en fonction de la formule
     private String calculateValue() {
