@@ -25,7 +25,7 @@ public class SpreadsheetCellModel {
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
 
         //ajout d'un listener pour notifier de changement de valeur
-        this.valueBinding.addListener((observable, oldValue, newValue) -> {alertDependentCells(); });
+      //  this.valueBinding.addListener((observable, oldValue, newValue) -> {alertDependentCells(); });
 
     }
 
@@ -34,23 +34,25 @@ public class SpreadsheetCellModel {
     private String calculateValue() {
         String formula = formulaProperty.get();
         if (formula.startsWith("=")) {
-            Expression expr = new ExpressionBuilder(model).build(formula);
-            if (expr != null) {
-                return String.valueOf(expr.interpret());
-            } else {
-                return "ERROR";
-            }
+            try {
+                Expression expr = new ExpressionBuilder(model).build(formula);
+                if (expr != null) {
+                    return String.valueOf(expr.interpret());
+                } else {
+                    return "ERROR";
+                }
+            } catch (Exception e) { return "SYNTAX_ERROR"; }
         } else {
             return formula; // Si ce n'est pas une formule, on retourne la valeur brute
         }
     }
 
     //avertir cell dependante du changement de valeur
-    private void alertDependentCells() {
+   /* private void alertDependentCells() {
         for (SpreadsheetCellModel dependentCell : dependentCells) {
             dependentCell.recalculateValue();
         }
-    }
+    } */
 
 
 
