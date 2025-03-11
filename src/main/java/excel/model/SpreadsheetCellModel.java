@@ -5,11 +5,14 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
 public class SpreadsheetCellModel {
+    private final StringProperty displayedValue = new SimpleStringProperty("");
     private final StringProperty formulaProperty = new SimpleStringProperty(""); // Texte de la formule
     private final StringBinding valueBinding; // Valeur calculée de la cellule sous forme de String
     private final int row;
@@ -22,6 +25,7 @@ public class SpreadsheetCellModel {
         this.column = column;
         this.model = model;
         this.formulaProperty.set(value);
+        this.displayedValue.set(value);
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
 
         //ajout d'un listener pour notifier de changement de valeur
@@ -29,12 +33,22 @@ public class SpreadsheetCellModel {
 
     }
 
-
     // Calculer la valeur de la cellule en fonction de la formule
     private String calculateValue() {
         String formula = formulaProperty.get();
+        String displayed = displayedValue.get();
         if (formula.startsWith("=")) {
-            try {
+           try {
+                Set<SpreadsheetCellModel> visitedCells = new HashSet<>();
+                if (checkCircularReference(this, visitedCells)) {
+                    // Affichage dans cellule concerné par circlar ref
+                  //  for (SpreadsheetCellModel cell : visitedCells) {
+                     //   cell.setDisplayedValue("#CIRCULAR_REF");
+                   // }
+                    //Affichage dans current cell
+                    return "#CIRCULAR_REF";
+                }
+
                 Expression expr = new ExpressionBuilder(model).build(formula);
                 if (expr != null) {
                     return String.valueOf(expr.interpret());
@@ -46,6 +60,43 @@ public class SpreadsheetCellModel {
             return formula; // Si ce n'est pas une formule, on retourne la valeur brute
         }
     }
+
+    private boolean checkCircularReference(SpreadsheetCellModel currentCell, Set<SpreadsheetCellModel> visitedCells) {
+        //Si current cell est dans visitedCells set alors c'est reference circulaire
+        if (visitedCells.contains(currentCell)) {
+            return true;
+        }
+        visitedCells.add(currentCell);
+
+        List<String> cellReferences = extractCellReferences(currentCell.getFormula());
+
+        for (String cellRef : cellReferences) {
+            int[] coords = ExcelConverter.excelToRowCol(cellRef);
+            SpreadsheetCellModel referencedCell = model.getCell(coords[0], coords[1]);
+
+            if (referencedCell != null) {
+                if (checkCircularReference(referencedCell, visitedCells)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private List<String> extractCellReferences(String formula) {
+        List<String> cellReferences = new ArrayList<>();
+        // Utiliser une expression régulière pour extraire les références de cellules (par exemple, A1, B2, etc.)
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("[A-Z]+[0-9]+");
+        java.util.regex.Matcher matcher = pattern.matcher(formula);
+        while (matcher.find()) {
+            cellReferences.add(matcher.group());
+        }
+        return cellReferences;
+    }
+
+
+
+
 
     //avertir cell dependante du changement de valeur
    /* private void alertDependentCells() {
@@ -71,6 +122,10 @@ public class SpreadsheetCellModel {
 
     public void setFormula(String formula) {
         this.formulaProperty.set(formula);
+    }
+
+    public void setDisplayedValue(String displayed) {
+        this.displayedValue.set(displayed);
     }
 
     public StringBinding valueBindingProperty() {

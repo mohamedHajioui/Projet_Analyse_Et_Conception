@@ -54,7 +54,7 @@ public class SpreadsheetCellViewModel {
 
     }
     public void setCellValue(String value) {
-        model.setFormula(value);
+        model.setDisplayedValue(value);
     }
     public String getFormula() {
         return model.getFormulaProperty();
