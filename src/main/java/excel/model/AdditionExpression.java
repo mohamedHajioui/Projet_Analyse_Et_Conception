@@ -9,5 +9,15 @@ public class AdditionExpression extends BinaryExpression {
     protected double operator(double left, double right) {
         return left + right;
     }
+
+    @Override
+    protected boolean compare(double left, double right) {
+        return false;
+    }
+
+    @Override
+    protected boolean isComparator() {
+        return false;
+    }
 }
 

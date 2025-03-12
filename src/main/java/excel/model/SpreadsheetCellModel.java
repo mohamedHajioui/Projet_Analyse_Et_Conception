@@ -21,33 +21,27 @@ public class SpreadsheetCellModel {
     }
 
     private String calculateValue() {
-        String formula = formulaProperty.get().trim();
-        // Si la formule est vide, retourner une chaîne vide
-        if (formula.isEmpty()) {
-            return "";
-        }
-        // Si la formule commence par '=', traiter comme une expression
+        String formula = formulaProperty.get();
         if (formula.startsWith("=")) {
-            String expression = formula.trim();
-
-            // Vérifier si l'expression se termine par un opérateur
-            if (expression.matches(".*[+\\-*/%<>=!&|^]$")) {
+            try {
+                Expression expr = new ExpressionBuilder(model).build(formula);
+                if (expr != null) {
+                    Object result = expr.interpret();
+                    return result != null ? result.toString() : "SYNTAX_ERROR";
+                } else {
+                    return "SYNTAX_ERROR";
+                }
+            } catch (IllegalArgumentException e) {
+                // Gérer les exceptions liées à des arguments invalides dans l'expression
                 return "SYNTAX_ERROR";
-            }
-
-            // Construire et évaluer l'expression
-            Expression expr = new ExpressionBuilder(model).build(expression);
-            if (expr != null) {
-                return String.valueOf(expr.interpret());
-            } else {
+            } catch (Exception e) {
+                // Gérer toute autre exception inattendue
                 return "SYNTAX_ERROR";
             }
         } else {
-            // Si la formule ne commence pas par '=', la traiter comme une chaîne de caractères brute
-            return formula;
+            return formula; // Si ce n'est pas une formule, on retourne la valeur brute
         }
     }
-
 
 
     public StringBinding valueProperty() {

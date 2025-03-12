@@ -20,6 +20,8 @@ public abstract class BinaryExpression extends Expression {
     }
 
     protected abstract double operator(double left, double right);
+    protected abstract boolean compare(double left, double right);
+    protected abstract boolean isComparator();
 
     @Override
     public Object interpret() {
@@ -30,8 +32,12 @@ public abstract class BinaryExpression extends Expression {
             double leftNum = convertToDouble(leftValue);
             double rightNum = convertToDouble(rightValue);
 
-            double result = operator(leftNum, rightNum);
-            return formatNumber(result);
+            if (isComparator()) {
+                return compare(leftNum, rightNum);
+            } else {
+                double result = operator(leftNum, rightNum);
+                return formatNumber(result);
+            }
         } catch (NumberFormatException e) {
             return "SYNTAX_ERROR";
         }
