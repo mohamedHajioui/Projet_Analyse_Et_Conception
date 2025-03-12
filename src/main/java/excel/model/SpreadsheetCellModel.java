@@ -22,18 +22,15 @@ public class SpreadsheetCellModel {
 
     private String calculateValue() {
         String formula = formulaProperty.get().trim();
-
         // Si la formule est vide, retourner une chaîne vide
         if (formula.isEmpty()) {
             return "";
         }
-
         // Si la formule commence par '=', traiter comme une expression
         if (formula.startsWith("=")) {
             String expression = formula.trim();
 
             // Vérifier si l'expression se termine par un opérateur
-
             if (expression.matches(".*[+\\-*/%<>=!&|^]$")) {
                 return "SYNTAX_ERROR";
             }
@@ -41,11 +38,7 @@ public class SpreadsheetCellModel {
             // Construire et évaluer l'expression
             Expression expr = new ExpressionBuilder(model).build(expression);
             if (expr != null) {
-                try {
-                    return String.valueOf(expr.interpret());
-                } catch (Exception e) {
-                    return "SYNTAX_ERROR";
-                }
+                return String.valueOf(expr.interpret());
             } else {
                 return "SYNTAX_ERROR";
             }
