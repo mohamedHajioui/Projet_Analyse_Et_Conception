@@ -20,6 +20,11 @@ public class LessThanExpression extends BinaryExpression{
         return true;
     }
 
+    @Override
+    protected boolean isDivision() {
+        return false;
+    }
+
 
 }
 

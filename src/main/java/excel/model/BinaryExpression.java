@@ -22,11 +22,16 @@ public abstract class BinaryExpression extends Expression {
     protected abstract double operator(double left, double right);
     protected abstract boolean compare(double left, double right);
     protected abstract boolean isComparator();
+    protected abstract boolean isDivision();
 
     @Override
     public Object interpret() {
         Object leftValue = left.interpret();
         Object rightValue = right.interpret();
+        Double divisor = (double) rightValue;
+        if (isDivision() && divisor == 0){
+            return "#VALEUR";
+        }
 
         try {
             double leftNum = convertToDouble(leftValue);

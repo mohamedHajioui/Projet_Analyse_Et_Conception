@@ -20,5 +20,10 @@ public class GreaterThanExpression extends BinaryExpression {
         return true;
     }
 
+    @Override
+    protected boolean isDivision() {
+        return false;
+    }
+
 
 }

@@ -19,4 +19,9 @@ public class SubstractionExpression extends BinaryExpression{
     protected boolean isComparator() {
         return false;
     }
+
+    @Override
+    protected boolean isDivision() {
+        return false;
+    }
 }
