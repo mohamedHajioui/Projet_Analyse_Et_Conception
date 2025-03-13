@@ -5,6 +5,7 @@ import java.util.Objects;
 public abstract class BinaryExpression extends Expression {
     private Expression left;
     private Expression right;
+
     public BinaryExpression(Expression left, Expression right) {
         this.left = left;
         this.right = right;
@@ -18,5 +19,48 @@ public abstract class BinaryExpression extends Expression {
         return right;
     }
 
+    protected abstract double operator(double left, double right);
+    protected abstract boolean compare(double left, double right);
+    protected abstract boolean isComparator();
+    protected abstract boolean isDivision();
 
+    @Override
+    public Object interpret() {
+        Object leftValue = left.interpret();
+        Object rightValue = right.interpret();
+        Double divisor = (double) rightValue;
+        if (isDivision() && divisor == 0){
+            return "#VALEUR";
+        }
+        if (leftValue.equals("#VALEUR") || rightValue.equals("#VALEUR")) {
+            return "#VALEUR";
+        }
+
+        try {
+            double leftNum = convertToDouble(leftValue);
+            double rightNum = convertToDouble(rightValue);
+
+            if (isComparator()) {
+                return compare(leftNum, rightNum);
+            } else {
+                double result = operator(leftNum, rightNum);
+                return formatNumber(result);
+            }
+        } catch (NumberFormatException e) {
+            return "SYNTAX_ERROR";
+        }
+    }
+
+    protected double convertToDouble(Object value) {
+        if (value instanceof Double) {
+            return (Double) value;
+        } else if (value instanceof String) {
+            try {
+                return Double.parseDouble((String) value);
+            } catch (NumberFormatException e) {
+                throw new NumberFormatException("Invalid number: " + value);
+            }
+        }
+        throw new NumberFormatException("Invalid type: " + value);
+    }
 }

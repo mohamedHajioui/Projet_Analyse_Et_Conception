@@ -19,6 +19,11 @@ public class CellReferenceExpression extends Expression {
 
         String value = cell.getValueBinding();
 
+        //Si la cell est vide, on retourne #VALEUR
+        if (value == null || value.isEmpty()) {
+            return "#VALEUR";
+        }
+
         // Si la valeur est numérique, on la retourne en tant que Double
         try {
             return Double.parseDouble(value);

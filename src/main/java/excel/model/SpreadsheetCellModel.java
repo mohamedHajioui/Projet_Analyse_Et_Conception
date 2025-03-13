@@ -33,6 +33,7 @@ public class SpreadsheetCellModel {
 
     }
 
+
     // Calculer la valeur de la cellule en fonction de la formule
     private String calculateValue() {
         String formula = formulaProperty.get();
@@ -51,11 +52,21 @@ public class SpreadsheetCellModel {
 
                 Expression expr = new ExpressionBuilder(model).build(formula);
                 if (expr != null) {
-                    return String.valueOf(expr.interpret());
+                    Object result = expr.interpret();
+                    if (result != null && result.equals("#VALEUR")) {
+                        return "#VALEUR";
+                    }
+                    return result != null ? result.toString() : "SYNTAX_ERROR";
                 } else {
-                    return "ERROR";
+                    return "SYNTAX_ERROR";
                 }
-            } catch (Exception e) { return "SYNTAX_ERROR"; }
+            } catch (IllegalArgumentException e) {
+                // Gérer les exceptions liées à des arguments invalides dans l'expression
+                return "SYNTAX_ERROR";
+            } catch (Exception e) {
+                // Gérer toute autre exception inattendue
+                return "SYNTAX_ERROR";
+            }
         } else {
             return formula; // Si ce n'est pas une formule, on retourne la valeur brute
         }

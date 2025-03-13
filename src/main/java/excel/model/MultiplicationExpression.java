@@ -1,23 +1,27 @@
 package excel.model;
 
-public class MultiplicationExpression extends Expression {
-    private Expression left;
-    private Expression right;
-
+public class MultiplicationExpression extends BinaryExpression {
     public MultiplicationExpression(Expression left, Expression right) {
-        this.left = left;
-        this.right = right;
+        super(left, right);
     }
 
     @Override
-    public Object interpret() {
-        Object leftValue = left.interpret();
-        Object rightValue = right.interpret();
+    protected double operator(double left, double right) {
+        return left * right;
+    }
 
-        if (leftValue instanceof Double && rightValue instanceof Double) {
-            return (Double) leftValue * (Double) rightValue;
-        } else {
-            throw new IllegalArgumentException("Incompatible types for multiplication.");
-        }
+    @Override
+    protected boolean compare(double left, double right) {
+        return false;
+    }
+
+    @Override
+    protected boolean isComparator() {
+        return false;
+    }
+
+    @Override
+    protected boolean isDivision() {
+        return false;
     }
 }
