@@ -32,6 +32,9 @@ public abstract class BinaryExpression extends Expression {
         if (isDivision() && divisor == 0){
             return "#VALEUR";
         }
+        if (leftValue.equals("#VALEUR") || rightValue.equals("#VALEUR")) {
+            return "#VALEUR";
+        }
 
         try {
             double leftNum = convertToDouble(leftValue);
