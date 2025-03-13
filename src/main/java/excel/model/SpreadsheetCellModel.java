@@ -27,6 +27,9 @@ public class SpreadsheetCellModel {
                 Expression expr = new ExpressionBuilder(model).build(formula);
                 if (expr != null) {
                     Object result = expr.interpret();
+                    if (result != null && result.equals("#VALEUR")) {
+                        return "#VALEUR";
+                    }
                     return result != null ? result.toString() : "SYNTAX_ERROR";
                 } else {
                     return "SYNTAX_ERROR";
