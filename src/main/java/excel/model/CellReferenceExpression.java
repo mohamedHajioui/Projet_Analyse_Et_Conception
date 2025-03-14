@@ -17,7 +17,7 @@ public class CellReferenceExpression extends Expression {
         int[] coords = ExcelConverter.excelToRowCol(cellRef);
         SpreadsheetCellModel cell = model.getCell(coords[0], coords[1]);
         if (cell == null) {
-            return "#VAL1";
+            return "#VALEUR";
         }
 
         //Enregistrer que currentCell depend de cell
@@ -44,7 +44,7 @@ public class CellReferenceExpression extends Expression {
                 return false;
             }
             // Si c'est un autre type de valeur (texte), on retourne la chaîne
-            return value;
+            return "#VALEUR";
         }
     }
 }
