@@ -29,7 +29,7 @@ public class SpreadsheetCellModel {
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
 
         //Ajout d'un listener sur formulaProperty pour avertir dependentCells d'un changement de formule
-        this.formulaProperty.addListener((observable, oldValue, newValue) -> {
+        this.valueBinding.addListener((observable, oldValue, newValue) -> {
             notifyDependentCells();
         });
     }
@@ -42,15 +42,25 @@ public class SpreadsheetCellModel {
     //Avertir dependentCells pour recalculer les values
     private void notifyDependentCells() {
         for (SpreadsheetCellModel cell : dependentCells) {
-            if (cell != null) {
                 cell.recalculateValue();
-            }
         }
     }
+
+   /* public void clearDependencies() {
+        for (SpreadsheetCellModel cell : new ArrayList<>(dependentCells)) {
+            cell.removeDependentCell(this);
+        }
+        dependentCells.clear();
+    }
+
+    public void removeDependentCell(SpreadsheetCellModel cell) {
+        dependentCells.remove(cell);
+    } */
 
     //Recacluler cell value
     private void recalculateValue() {
         this.valueBinding.invalidate(); //forcer la recalculation du valueBinding
+        notifyDependentCells();
     }
 
 
@@ -153,7 +163,9 @@ public class SpreadsheetCellModel {
     }
 
     public void setFormula(String formula) {
+     //   clearDependencies();
         this.formulaProperty.set(formula);
+        recalculateValue();
     }
 
     public void setDisplayedValue(String displayed) {
