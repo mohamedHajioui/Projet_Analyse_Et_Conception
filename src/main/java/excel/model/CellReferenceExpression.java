@@ -16,6 +16,15 @@ public class CellReferenceExpression extends Expression {
 
         int[] coords = ExcelConverter.excelToRowCol(cellRef);
         SpreadsheetCellModel cell = model.getCell(coords[0], coords[1]);
+        if (cell == null) {
+            return "#VAL1";
+        }
+
+        //Enregistrer que currentCell depend de cell
+        SpreadsheetCellModel currentCell = model.getCurrentCell(); //!!implementer getCurrentCell() dans SpreadsheetModel
+        if (currentCell != null) {
+            cell.addDependentCell(currentCell);
+        }
 
         String value = cell.getValueBinding();
 

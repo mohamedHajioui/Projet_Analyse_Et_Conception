@@ -16,7 +16,12 @@ public class ExpressionBuilder {
         if (strExpr.charAt(0) == '=') {
             List<String> tokens = tokenize(strExpr.substring(1));
             System.out.println(tokens);
-            return buildExpression(tokens);
+            SpreadsheetCellModel currentCell = model.getCurrentCell();
+            if (currentCell != null) {
+                return buildExpression(tokens);
+            } else {
+                throw new IndexOutOfBoundsException("Invalid expression");
+            }
         }
         return null;
     }

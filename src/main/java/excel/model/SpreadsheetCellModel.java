@@ -28,9 +28,29 @@ public class SpreadsheetCellModel {
         this.displayedValue.set(value);
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
 
-        //ajout d'un listener pour notifier de changement de valeur
-      //  this.valueBinding.addListener((observable, oldValue, newValue) -> {alertDependentCells(); });
+        //Ajout d'un listener sur formulaProperty pour avertir dependentCells d'un changement de formule
+        this.formulaProperty.addListener((observable, oldValue, newValue) -> {
+            notifyDependentCells();
+        });
+    }
 
+    //Ajout d'une cell a la list dependentCells
+    public void addDependentCell(SpreadsheetCellModel cell) {
+        dependentCells.add(cell);
+    }
+
+    //Avertir dependentCells pour recalculer les values
+    private void notifyDependentCells() {
+        for (SpreadsheetCellModel cell : dependentCells) {
+            if (cell != null) {
+                cell.recalculateValue();
+            }
+        }
+    }
+
+    //Recacluler cell value
+    private void recalculateValue() {
+        this.valueBinding.invalidate(); //forcer la recalculation du valueBinding
     }
 
 
@@ -40,6 +60,7 @@ public class SpreadsheetCellModel {
         String displayed = displayedValue.get();
         if (formula.startsWith("=")) {
            try {
+                model.setCurrentCell(this);
                 Set<SpreadsheetCellModel> visitedCells = new HashSet<>();
                 if (checkCircularReference(this, visitedCells)) {
                     // Affichage dans cellule concerné par circlar ref
