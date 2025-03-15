@@ -1,6 +1,7 @@
 package excel.viewmodel;
 
 import excel.model.SpreadsheetModel;
+import excel.tools.ExcelConverter;
 import javafx.beans.property.*;
 
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ public class SpreadsheetViewModel {
     private final List<SpreadsheetCellViewModel> cellVMs = new ArrayList<>(); // Liste des VM associés aux cellules
     private final ObjectProperty<SpreadsheetCellViewModel> selectedCell = new SimpleObjectProperty<>(); // Cellule sélectionnée
     private final StringProperty selectedCellContent = new SimpleStringProperty(""); // Le contenu de la cellule sélectionnée (formule ou valeur)
-    private final StringProperty selectedCellFormula = new SimpleStringProperty(""); // Formule brute de la cellule sélectionnée
+    private final StringProperty selectedCellFormula = new SimpleStringProperty(""); // Exprression de la cellule sélectionnée
 
     public SpreadsheetViewModel(SpreadsheetModel model) {
         this.NB_ROW = model.getRowCount();
@@ -19,10 +20,42 @@ public class SpreadsheetViewModel {
 
         for (int i = 0; i < NB_ROW; i++) {
             for (int j = 0; j < NB_COL; j++) {
-                cellVMs.add(new SpreadsheetCellViewModel(model.getCell(i, j)));
+                SpreadsheetCellViewModel cellViewModel = new SpreadsheetCellViewModel(model.getCell(i, j));
+                cellVMs.add(cellViewModel);
+                final int rowIndex = i;
+                final int colIndex = j;
+
+                cellViewModel.getModel().valueBindingProperty().addListener((observable, oldValue, newValue) -> {
+                    // Si la cellule change, on vérifie ses dépendances et on les met à jour
+                    System.out.println("Cell value changed: " + oldValue + " -> " + newValue);
+                    updateDependentCells(rowIndex, colIndex);
+                });
             }
         }
     }
+    public void updateDependentCells(int row, int column) {
+        for (SpreadsheetCellViewModel cellViewModel : cellVMs) {
+            String formula = cellViewModel.getFormula();  // Récupère la formule de la cellule
+
+            if (formula.startsWith("=")) {  // Si la cellule a une formule, on vérifie ses dépendances
+                List<String> cellReferences = ExcelConverter.extractCellReferences(formula);
+                for (String reference : cellReferences) {
+                    int[] cellIndices = ExcelConverter.excelToRowCol(reference);
+                    int referencedRow = cellIndices[0];
+                    int referencedCol = cellIndices[1];
+
+                    // Si la cellule référencée correspond à la cellule modifiée, on met à jour la cellule
+                    if (referencedRow == row && referencedCol == column) {
+                        cellViewModel.updateValue(); ;
+
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
 
     // Récuperer le SpreadsheetCellViewModel associé à une cellule donnée
     public SpreadsheetCellViewModel getCellViewModel(int line, int column) {

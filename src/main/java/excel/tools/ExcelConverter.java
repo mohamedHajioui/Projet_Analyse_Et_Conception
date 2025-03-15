@@ -1,5 +1,10 @@
 package excel.tools;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class ExcelConverter {
     public static int[] excelToRowCol(String reference){
         if (!reference.matches("[A-Z]+[0-9]+")){
@@ -40,6 +45,22 @@ public class ExcelConverter {
             System.out.println(test + " -> ligne=" + coords[0] + ", colonne=" + coords[1]);
             System.out.println("Retour: " + rowColToExcel(coords[0], coords[1]));
         }
+    }
+
+
+    // Extraire toutes les références de cellules d'une formule
+    public static List<String> extractCellReferences(String formula) {
+        List<String> references = new ArrayList<>();
+
+        String regex = "[A-Z]+[0-9]+";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(formula);
+
+        while (matcher.find()) {
+            references.add(matcher.group());
+        }
+
+        return references;
     }
 
 

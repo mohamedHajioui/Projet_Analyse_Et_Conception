@@ -4,14 +4,10 @@ import excel.model.SpreadsheetCellModel;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class SpreadsheetCellViewModel {
     private final SpreadsheetCellModel model;
     private boolean inEdition = false; // true si la vue est en mode édition
     private ObjectProperty<Object> cellContentProperty;
-    private final List<SpreadsheetCellViewModel> dependentCells = new ArrayList<>();
 
     public SpreadsheetCellViewModel(SpreadsheetCellModel model) {
         this.model = model;
@@ -63,4 +59,17 @@ public class SpreadsheetCellViewModel {
     public void setFormula(String formula) {
         model.setFormula(formula);
     }
+    public void updateValue() {
+        // Cette méthode sera appelée pour recalculer la valeur de la cellule
+        String newValue = model.calculateValue();
+        this.cellContentProperty.set(newValue);
+
+
+
+    }
+    public SpreadsheetCellModel getModel() {
+        return model;
+    }
+
+
 }

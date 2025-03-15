@@ -20,7 +20,7 @@ public class SpreadsheetCellModel {
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
     }
 
-    private String calculateValue() {
+    public String calculateValue() {
         String formula = formulaProperty.get();
         if (formula.startsWith("=")) {
             try {
