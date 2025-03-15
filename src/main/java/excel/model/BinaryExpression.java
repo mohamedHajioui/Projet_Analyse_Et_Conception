@@ -1,6 +1,6 @@
 package excel.model;
 
-import java.util.Objects;
+import java.text.DecimalFormat;
 
 public abstract class BinaryExpression extends Expression {
     private Expression left;
@@ -28,10 +28,7 @@ public abstract class BinaryExpression extends Expression {
     public Object interpret() {
         Object leftValue = left.interpret();
         Object rightValue = right.interpret();
-        Double divisor = (double) rightValue;
-        if (isDivision() && divisor == 0){
-            return "#VALEUR";
-        }
+
         if (leftValue.equals("#VALEUR") || rightValue.equals("#VALEUR")) {
             return "#VALEUR";
         }
@@ -40,13 +37,17 @@ public abstract class BinaryExpression extends Expression {
             double leftNum = convertToDouble(leftValue);
             double rightNum = convertToDouble(rightValue);
 
+            if (isDivision() && rightNum == 0) {
+                return "#VALEUR";
+            }
+
             if (isComparator()) {
                 return compare(leftNum, rightNum);
             } else {
                 double result = operator(leftNum, rightNum);
                 return formatNumber(result);
             }
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | ClassCastException e) {
             return "SYNTAX_ERROR";
         }
     }
@@ -62,5 +63,10 @@ public abstract class BinaryExpression extends Expression {
             }
         }
         throw new NumberFormatException("Invalid type: " + value);
+    }
+
+    protected String formatNumber(double number) {
+        DecimalFormat df = new DecimalFormat("#.##");
+        return df.format(number);
     }
 }
