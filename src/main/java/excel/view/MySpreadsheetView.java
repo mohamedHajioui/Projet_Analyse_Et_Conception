@@ -78,14 +78,25 @@ public class MySpreadsheetView extends SpreadsheetView {
         this.selectedCell = this.grid.getRows().get(row).get(col);
     }
 
-    // Méthode qui prévient le VM de la cellule sélectionnée que le mode d'édition a changé
     private void changeEditionMode(boolean inEdition) {
         if (selectedCell == null) return; // Si aucune cellule n'est sélectionnée, rien à faire
 
         // On récupère le VM de la cellule sélectionnée
         SpreadsheetCellViewModel cellVM = viewModel.getCellViewModel(selectedCell.getRow(), selectedCell.getColumn());
 
-        // On indique au VM le mode d'édition
-        cellVM.setEditionMode(inEdition);
+        if (inEdition) {
+            cellVM.setEditionMode(true);
+        } else {
+            cellVM.setEditionMode(false);
+            cellVM.updateValue();
+        }
+
+        if (!inEdition) {
+            int row = selectedCell.getRow();
+            int col = selectedCell.getColumn();
+            viewModel.updateDependentCells(row, col); // Recalcule les cellules dépendantes
+        }
     }
+
+
 }

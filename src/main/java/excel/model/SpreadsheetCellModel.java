@@ -18,7 +18,6 @@ public class SpreadsheetCellModel {
     private final int row;
     private final int column;
     private final SpreadsheetModel model;
-    private final Set<SpreadsheetCellModel> dependentCells = new HashSet<>();
 
     public SpreadsheetCellModel(String value, int row, int column, SpreadsheetModel model) {
         this.row = row;
@@ -27,45 +26,9 @@ public class SpreadsheetCellModel {
         this.formulaProperty.set(value);
         this.displayedValue.set(value);
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
-
-        //Ajout d'un listener sur formulaProperty pour avertir dependentCells d'un changement de formule
-        this.valueBinding.addListener((observable, oldValue, newValue) -> {
-            notifyDependentCells();
-        });
     }
 
-    //Ajout d'une cell a la list dependentCells
-    public void addDependentCell(SpreadsheetCellModel cell) {
-        dependentCells.add(cell);
-    }
-
-    //Avertir dependentCells pour recalculer les values
-    private void notifyDependentCells() {
-        for (SpreadsheetCellModel cell : dependentCells) {
-                cell.recalculateValue();
-        }
-    }
-
-   /* public void clearDependencies() {
-        for (SpreadsheetCellModel cell : new ArrayList<>(dependentCells)) {
-            cell.removeDependentCell(this);
-        }
-        dependentCells.clear();
-    }
-
-    public void removeDependentCell(SpreadsheetCellModel cell) {
-        dependentCells.remove(cell);
-    } */
-
-    //Recacluler cell value
-    private void recalculateValue() {
-        this.valueBinding.invalidate(); //forcer la recalculation du valueBinding
-        notifyDependentCells();
-    }
-
-
-    // Calculer la valeur de la cellule en fonction de la formule
-    private String calculateValue() {
+    public String calculateValue() {
         String formula = formulaProperty.get();
         String displayed = displayedValue.get();
         if (formula.startsWith("=")) {
@@ -163,9 +126,7 @@ public class SpreadsheetCellModel {
     }
 
     public void setFormula(String formula) {
-     //   clearDependencies();
         this.formulaProperty.set(formula);
-        recalculateValue();
     }
 
     public void setDisplayedValue(String displayed) {
