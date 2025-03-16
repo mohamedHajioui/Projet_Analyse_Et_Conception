@@ -4,9 +4,12 @@
 
 ### Liste des bugs connus
 
-* bug 1
-* bug 2
-* ...
+* Affichage incorrect des arrondis (ex : 2.0 au lieu de 2 seulement dans le cas ou on ecrit une expression avec qu'une seule valeur "=2")
+* 
+
+### Diagramme de classes
+
+* https://drive.google.com/file/d/1WQnJeQat2qEOjuuP8V43b_qy4GiHyBti/view?usp=sharing
 
 ### Liste des fonctionnalités supplémentaires
 
