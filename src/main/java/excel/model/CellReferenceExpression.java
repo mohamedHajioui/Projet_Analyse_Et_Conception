@@ -22,9 +22,9 @@ public class CellReferenceExpression extends Expression {
 
         //Enregistrer que currentCell depend de cell
         SpreadsheetCellModel currentCell = model.getCurrentCell(); //!!implementer getCurrentCell() dans SpreadsheetModel
-        if (currentCell != null) {
+        /*if (currentCell != null) {
             cell.addDependentCell(currentCell);
-        }
+        } */
 
         String value = cell.getValueBinding();
 
