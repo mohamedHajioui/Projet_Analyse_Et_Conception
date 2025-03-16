@@ -4,7 +4,7 @@
 
 ### Liste des bugs connus
 
-* Affichage incorrect des arrondis (ex : 2.0 au lieu de 2)
+* Affichage incorrect des arrondis (ex : 2.0 au lieu de 2 seulement dans le cas ou on ecrit une expression avec qu'une seule valeur "=2")
 * 
 
 ### Diagramme de classes
