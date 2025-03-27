@@ -57,7 +57,8 @@ public abstract class BinaryExpression extends Expression {
             return (Double) value;
         } else if (value instanceof String) {
             try {
-                return Double.parseDouble((String) value);
+                String strValue = ((String) value).replace(",", ".");
+                return Double.parseDouble(strValue);
             } catch (NumberFormatException e) {
                 throw new NumberFormatException("Invalid number: " + value);
             }
