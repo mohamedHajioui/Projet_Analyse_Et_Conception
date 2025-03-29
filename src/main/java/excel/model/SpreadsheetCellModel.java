@@ -32,14 +32,14 @@ public class SpreadsheetCellModel {
         String formula = formulaProperty.get();
         String displayed = displayedValue.get();
         if (formula.startsWith("=")) {
-           try {
+            try {
                 model.setCurrentCell(this);
                 Set<SpreadsheetCellModel> visitedCells = new HashSet<>();
                 if (checkCircularReference(this, visitedCells)) {
                     // Affichage dans cellule concerné par circlar ref
-                  //  for (SpreadsheetCellModel cell : visitedCells) {
-                     //   cell.setDisplayedValue("#CIRCULAR_REF");
-                   // }
+                    //  for (SpreadsheetCellModel cell : visitedCells) {
+                    //   cell.setDisplayedValue("#CIRCULAR_REF");
+                    // }
                     //Affichage dans current cell
                     return "#CIRCULAR_REF";
                 }
@@ -55,6 +55,9 @@ public class SpreadsheetCellModel {
                     return "SYNTAX_ERROR";
                 }
             } catch (IllegalArgumentException e) {
+                if (formula.toUpperCase().contains("OR") || formula.toUpperCase().contains("AND")) {
+                    return "#VALEUR";
+                }
                 // Gérer les exceptions liées à des arguments invalides dans l'expression
                 return "SYNTAX_ERROR";
             } catch (Exception e) {
@@ -67,19 +70,30 @@ public class SpreadsheetCellModel {
     }
 
     private boolean checkCircularReference(SpreadsheetCellModel currentCell, Set<SpreadsheetCellModel> visitedCells) {
+
         //Si current cell est dans visitedCells set alors c'est reference circulaire
         if (visitedCells.contains(currentCell)) {
             return true;
         }
+
         visitedCells.add(currentCell);
 
         List<String> cellReferences = extractCellReferences(currentCell.getFormula());
+        Set<String> alreadyCheckedRefs = new HashSet<>();
 
         for (String cellRef : cellReferences) {
             int[] coords = ExcelConverter.excelToRowCol(cellRef);
             SpreadsheetCellModel referencedCell = model.getCell(coords[0], coords[1]);
-
+            if (alreadyCheckedRefs.contains(cellRef)) {
+                continue;
+            }
+            alreadyCheckedRefs.add(cellRef);
             if (referencedCell != null) {
+
+                List<String> referencedCellReferences = extractCellReferences(referencedCell.getFormula());
+                if (referencedCellReferences.isEmpty()) {
+                    return false;
+                }
                 if (checkCircularReference(referencedCell, visitedCells)) {
                     return true;
                 }
