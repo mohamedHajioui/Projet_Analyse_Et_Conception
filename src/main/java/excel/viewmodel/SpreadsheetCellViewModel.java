@@ -1,6 +1,7 @@
 package excel.viewmodel;
 
 import excel.model.SpreadsheetCellModel;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 
@@ -33,6 +34,7 @@ public class SpreadsheetCellViewModel {
         ChangeListener<Object> expressionSetterListener = (obs, ov, nv) -> {
             if (inEdition) { // Si on est en mode édition
                 model.setFormula(getStringFromObject(nv)); // Met à jour la formule dans le modèle
+                model.updatevalue();
             }
         };
         // On associe le listener à la propriété de contenu visuel de la cellule
@@ -49,9 +51,6 @@ public class SpreadsheetCellViewModel {
         return model.getValueBinding();
 
     }
-    public void setCellValue(String value) {
-        model.setDisplayedValue(value);
-    }
     public String getFormula() {
         return model.getFormulaProperty();
     }
@@ -60,16 +59,17 @@ public class SpreadsheetCellViewModel {
         model.setFormula(formula);
     }
     public void updateValue() {
-        // Cette méthode sera appelée pour recalculer la valeur de la cellule
-        String newValue = model.calculateValue();
-        this.cellContentProperty.set(newValue);
-
-
-
+        model.updatevalue();
     }
     public SpreadsheetCellModel getModel() {
         return model;
     }
 
+    public boolean isInEdition() {
+        return inEdition;
+    }
 
+    public void setInEdition(boolean inEdition) {
+        this.inEdition = inEdition;
+    }
 }

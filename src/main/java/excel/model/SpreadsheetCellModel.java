@@ -1,9 +1,11 @@
 package excel.model;
 
 import excel.tools.ExcelConverter;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.*;
+import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,25 +14,25 @@ import java.util.Set;
 
 
 public class SpreadsheetCellModel {
-    private final StringProperty displayedValue = new SimpleStringProperty("");
+
     private final StringProperty formulaProperty = new SimpleStringProperty(""); // Texte de la formule
     private final StringBinding valueBinding; // Valeur calculée de la cellule sous forme de String
     private final int row;
     private final int column;
     private final SpreadsheetModel model;
+    private final Set<SpreadsheetCellModel> dependentCells = new HashSet<>();
+
 
     public SpreadsheetCellModel(String value, int row, int column, SpreadsheetModel model) {
         this.row = row;
         this.column = column;
         this.model = model;
         this.formulaProperty.set(value);
-        this.displayedValue.set(value);
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
     }
 
     public String calculateValue() {
         String formula = formulaProperty.get();
-        String displayed = displayedValue.get();
         if (formula.startsWith("=")) {
             try {
                 model.setCurrentCell(this);
@@ -44,6 +46,14 @@ public class SpreadsheetCellModel {
                     return "#CIRCULAR_REF";
                 }
 
+
+                List<String> referencedCells = extractCellReferences(formula);
+                for (String cell : referencedCells){
+                    int[] coords = ExcelConverter.excelToRowCol(cell);
+                    SpreadsheetCellModel referencedCell = model.getCell(coords[0], coords[1]);
+                    referencedCell.dependentCells.add(this);
+
+                }
                 Expression expr = new ExpressionBuilder(model).build(formula);
                 if (expr != null) {
                     Object result = expr.interpret();
@@ -112,6 +122,30 @@ public class SpreadsheetCellModel {
         }
         return cellReferences;
     }
+    public void updatevalue(){
+        //cleanDependencies();
+        String currentFormula = formulaProperty.get();
+        formulaProperty.set("");
+        formulaProperty.set(currentFormula);
+        System.out.println(dependentCells);
+        if(!dependentCells.isEmpty()){
+            for (SpreadsheetCellModel cell : new HashSet<>(dependentCells)) {
+                cell.updatevalue();
+
+            }
+        }
+
+    }
+    private void cleanDependencies() {
+        // Notifier toutes les cellules qui nous référencent qu'elles doivent nous retirer
+        for (SpreadsheetCellModel cell : dependentCells) {
+            cell.removeDependency(this);
+        }
+        //dependentCells.clear();
+    }
+    public void removeDependency(SpreadsheetCellModel cell) {
+        dependentCells.remove(cell);
+    }
 
 
 
@@ -140,12 +174,11 @@ public class SpreadsheetCellModel {
     }
 
     public void setFormula(String formula) {
+        updatevalue();
         this.formulaProperty.set(formula);
     }
 
-    public void setDisplayedValue(String displayed) {
-        this.displayedValue.set(displayed);
-    }
+
 
     public StringBinding valueBindingProperty() {
         return valueBinding;  // Exposer le StringBinding de la valeur
@@ -172,5 +205,9 @@ public class SpreadsheetCellModel {
 
     public SimpleObjectProperty<String> valuePropertyProperty() {
         return new SimpleObjectProperty<>(getValue());
+    }
+
+    public Set<SpreadsheetCellModel> getDependentCells() {
+        return dependentCells;
     }
 }

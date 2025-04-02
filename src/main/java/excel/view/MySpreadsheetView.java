@@ -2,6 +2,7 @@ package excel.view;
 
 import excel.viewmodel.SpreadsheetCellViewModel;
 import excel.viewmodel.SpreadsheetViewModel;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -79,23 +80,15 @@ public class MySpreadsheetView extends SpreadsheetView {
     }
 
     private void changeEditionMode(boolean inEdition) {
-        if (selectedCell == null) return; // Si aucune cellule n'est sélectionnée, rien à faire
+        if (selectedCell == null) return; //Si aucune cellule n'est sélectionnée, on ne fait rien
 
-        // On récupère le VM de la cellule sélectionnée
+        //Obtenir le VM correspondant à la cellule sélectionnée
         SpreadsheetCellViewModel cellVM = viewModel.getCellViewModel(selectedCell.getRow(), selectedCell.getColumn());
 
-        if (inEdition) {
-            cellVM.setEditionMode(true);
-        } else {
-            cellVM.setEditionMode(false);
-            cellVM.updateValue();
-        }
 
-        if (!inEdition) {
-            int row = selectedCell.getRow();
-            int col = selectedCell.getColumn();
-            viewModel.updateDependentCells(row, col); // Recalcule les cellules dépendantes
-        }
+        //On indique au VM le mode d'édition
+        cellVM.setEditionMode(inEdition);
+
     }
 
 

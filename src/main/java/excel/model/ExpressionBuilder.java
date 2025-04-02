@@ -15,7 +15,7 @@ public class ExpressionBuilder {
     public Expression build(String strExpr) {
         if (strExpr.charAt(0) == '=') {
             List<String> tokens = tokenize(strExpr.substring(1));
-            System.out.println(tokens);
+            //System.out.println(tokens);
             SpreadsheetCellModel currentCell = model.getCurrentCell();
             if (currentCell != null) {
                 return buildExpression(tokens);
