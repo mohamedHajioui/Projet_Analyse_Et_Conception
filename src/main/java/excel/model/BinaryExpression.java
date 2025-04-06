@@ -1,6 +1,7 @@
 package excel.model;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 public abstract class BinaryExpression extends Expression {
     private Expression left;
@@ -67,7 +68,6 @@ public abstract class BinaryExpression extends Expression {
     }
 
     protected String formatNumber(double number) {
-        DecimalFormat df = new DecimalFormat("#.##");
-        return df.format(number);
+        return super.formatNumber(number);
     }
 }

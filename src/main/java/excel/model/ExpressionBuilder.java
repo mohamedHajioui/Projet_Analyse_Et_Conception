@@ -15,7 +15,6 @@ public class ExpressionBuilder {
     public Expression build(String strExpr) {
         if (strExpr.charAt(0) == '=') {
             List<String> tokens = tokenize(strExpr.substring(1));
-            //System.out.println(tokens);
             SpreadsheetCellModel currentCell = model.getCurrentCell();
             if (currentCell != null) {
                 return buildExpression(tokens);
@@ -80,7 +79,33 @@ public class ExpressionBuilder {
         return tokens;
     }
 
+    private Expression buildSumExpression(String sumToken) {
+        // Enlever "SUM(" et la dernière ")"
+        String inner = sumToken.substring(4, sumToken.length() - 1).trim();
+        if (!inner.contains(":")) {
+            throw new IllegalArgumentException("SYNTAX_ERROR");
+        }
+
+        String[] parts = inner.split(":");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("SYNTAX_ERROR");
+        }
+        String ref1 = parts[0].trim(); // ex "A1"
+        String ref2 = parts[1].trim(); // ex "B2"
+        // Créer l'expression
+        return new SumFunctionExpression(ref1, ref2, model);
+    }
+
+
+
     private Expression buildExpression(List<String> tokens) {
+        if (tokens.size() == 1) {
+            String token = tokens.get(0).toUpperCase();
+            if (token.startsWith("SUM(") && token.endsWith(")")) {
+                return buildSumExpression(tokens.get(0));
+            }
+        }
+
         int idxOp = findLastOperator(tokens);
         if (idxOp != -1) {
             String op = tokens.get(idxOp);

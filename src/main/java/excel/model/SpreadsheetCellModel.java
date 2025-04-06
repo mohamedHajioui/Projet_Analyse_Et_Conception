@@ -14,7 +14,6 @@ import java.util.Set;
 
 
 public class SpreadsheetCellModel {
-
     private final StringProperty formulaProperty = new SimpleStringProperty(""); // Texte de la formule
     private final StringBinding valueBinding; // Valeur calculée de la cellule sous forme de String
     private final int row;
@@ -31,6 +30,14 @@ public class SpreadsheetCellModel {
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
     }
 
+    public int getRow() {
+        return row;
+    }
+
+    public int getColumn() {
+        return column;
+    }
+
     public String calculateValue() {
         String formula = formulaProperty.get();
         if (formula.startsWith("=")) {
@@ -38,14 +45,9 @@ public class SpreadsheetCellModel {
                 model.setCurrentCell(this);
                 Set<SpreadsheetCellModel> visitedCells = new HashSet<>();
                 if (checkCircularReference(this, visitedCells)) {
-                    // Affichage dans cellule concerné par circlar ref
-                    //  for (SpreadsheetCellModel cell : visitedCells) {
-                    //   cell.setDisplayedValue("#CIRCULAR_REF");
-                    // }
                     //Affichage dans current cell
                     return "#CIRCULAR_REF";
                 }
-
 
                 List<String> referencedCells = extractCellReferences(formula);
                 for (String cell : referencedCells){
@@ -147,20 +149,6 @@ public class SpreadsheetCellModel {
         dependentCells.remove(cell);
     }
 
-
-
-
-
-    //avertir cell dependante du changement de valeur
-   /* private void alertDependentCells() {
-        for (SpreadsheetCellModel dependentCell : dependentCells) {
-            dependentCell.recalculateValue();
-        }
-    } */
-
-
-
-
     public StringBinding valueProperty() {
         return valueBinding;
     }
@@ -177,8 +165,6 @@ public class SpreadsheetCellModel {
         updatevalue();
         this.formulaProperty.set(formula);
     }
-
-
 
     public StringBinding valueBindingProperty() {
         return valueBinding;  // Exposer le StringBinding de la valeur
