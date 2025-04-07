@@ -85,4 +85,12 @@ public class SpreadsheetViewModel {
             selectedCellProperty().get().updateValue();
         }
     }
+
+    public void handleOpen(){
+
+    }
+
+    public void handleSave(){
+
+    }
 }
