@@ -27,8 +27,6 @@ public class SpreadsheetViewModel {
         }
     }
 
-
-
     // Récuperer le SpreadsheetCellViewModel associé à une cellule donnée
     public SpreadsheetCellViewModel getCellViewModel(int line, int column) {
         return cellVMs.get(line * NB_COL + column);

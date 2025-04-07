@@ -9,7 +9,9 @@ public class MainView extends BorderPane {
     public MainView(SpreadsheetViewModel viewModel) {
         TextBarView textfield = new TextBarView(viewModel);
         MySpreadsheetView spreadsheetView = new MySpreadsheetView(viewModel);
+        HeaderView headerView = new HeaderView();
 
+        this.setTop(headerView);
         this.setTop(textfield);
         this.setCenter(spreadsheetView);
     }
