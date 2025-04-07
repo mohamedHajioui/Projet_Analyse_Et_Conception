@@ -3,7 +3,9 @@ package excel.viewmodel;
 import excel.model.SpreadsheetModel;
 import excel.tools.ExcelConverter;
 import javafx.beans.property.*;
+import javafx.stage.FileChooser;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,10 +15,12 @@ public class SpreadsheetViewModel {
     private final ObjectProperty<SpreadsheetCellViewModel> selectedCell = new SimpleObjectProperty<>(); // Cellule sélectionnée
     private final StringProperty selectedCellContent = new SimpleStringProperty(""); // Le contenu de la cellule sélectionnée (formule ou valeur)
     private final StringProperty selectedCellFormula = new SimpleStringProperty(""); // Exprression de la cellule sélectionnée
+    private final SpreadsheetModel model;
 
     public SpreadsheetViewModel(SpreadsheetModel model) {
         this.NB_ROW = model.getRowCount();
         this.NB_COL = model.getColumnCount();
+        this.model = model;
 
         for (int i = 0; i < NB_ROW; i++) {
             for (int j = 0; j < NB_COL; j++) {
@@ -87,10 +91,75 @@ public class SpreadsheetViewModel {
     }
 
     public void handleOpen(){
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open file");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("E4E files (*.e4e)", "*.e4e"));
 
+        //ouvrir la boite de dialogue
+        File file = fileChooser.showOpenDialog(null);
+        if (file == null) {
+            return;
+        }
+
+        //lire le fichier
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))){
+            //lire la premiere ligne "NB_LIGNES,NB_COLONNES"
+            String line = reader.readLine();
+            if (line == null){
+                return;
+            }
+
+            String[] sizeParts = line.split(",");
+            int nbRows = Integer.parseInt(sizeParts[0].trim());
+            int nbCols = Integer.parseInt(sizeParts[1].trim());
+
+            String cellLine;
+            while ((cellLine = reader.readLine()) != null) {
+                String[] rowColAndValue = cellLine.split(";");
+                if (rowColAndValue.length != 2) continue;
+
+                String[] rowColParts = rowColAndValue[0].split(",");
+                int row = Integer.parseInt(rowColParts[0].trim());
+                int col = Integer.parseInt(rowColParts[1].trim());
+                String content = rowColAndValue[1];
+
+                this.model.getCell(col, row).setFormula(content);
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     public void handleSave(){
+        //choix du fichier
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("save file");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("E4E files (*.e4e)", "*.e4e"));
+        File file = fileChooser.showSaveDialog(null);
+        if (file == null){
+            return;
+        }
 
+        //ecriture
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))){
+            //<NB_LIGNES,NB_COLONNES
+            writer.write(this.model.getRowCount() + "," + this.model.getColumnCount());
+            writer.newLine();
+
+            //parcourir toutes les cellules
+            for (int r = 0; r < this.model.getRowCount(); r++){
+                for (int c = 0; c < this.model.getColumnCount(); c++){
+                    String formula = this.model.getCell(r, c).getFormula();
+                    //Je sauvegarde que si ce n'est pas vide
+                    if (formula != null && !formula.isEmpty()){
+                        writer.write(c + "," + r + ";" + formula);
+                        writer.newLine();
+                    }
+                }
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+        }
     }
+
 }

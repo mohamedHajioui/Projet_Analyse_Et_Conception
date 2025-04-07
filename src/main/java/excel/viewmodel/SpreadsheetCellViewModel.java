@@ -65,11 +65,4 @@ public class SpreadsheetCellViewModel {
         return model;
     }
 
-    public boolean isInEdition() {
-        return inEdition;
-    }
-
-    public void setInEdition(boolean inEdition) {
-        this.inEdition = inEdition;
-    }
 }

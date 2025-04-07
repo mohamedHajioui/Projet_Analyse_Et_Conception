@@ -138,20 +138,6 @@ public class SpreadsheetCellModel {
         }
 
     }
-    private void cleanDependencies() {
-        // Notifier toutes les cellules qui nous référencent qu'elles doivent nous retirer
-        for (SpreadsheetCellModel cell : dependentCells) {
-            cell.removeDependency(this);
-        }
-        //dependentCells.clear();
-    }
-    public void removeDependency(SpreadsheetCellModel cell) {
-        dependentCells.remove(cell);
-    }
-
-    public StringBinding valueProperty() {
-        return valueBinding;
-    }
 
     public String getValue() {
         return valueBinding.get();
@@ -185,15 +171,4 @@ public class SpreadsheetCellModel {
                 + " (row " + this.row + ", column " + this.column + ") = \"" + this.valueBinding.get() + "\"";
     }
 
-    public StringProperty formulaProperty() {
-        return formulaProperty;
-    }
-
-    public SimpleObjectProperty<String> valuePropertyProperty() {
-        return new SimpleObjectProperty<>(getValue());
-    }
-
-    public Set<SpreadsheetCellModel> getDependentCells() {
-        return dependentCells;
-    }
 }
