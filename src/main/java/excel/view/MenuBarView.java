@@ -23,8 +23,14 @@ public class MenuBarView extends HBox {
         //edit
         Menu editMenu = new Menu("Edit");
         menuBar.getMenus().addAll(fileMenu, editMenu);
+        Menu optionsMenu = new Menu("Options");
+        MenuItem clearItem = new MenuItem("clear");
+        optionsMenu.getItems().addAll(clearItem);
+        menuBar.getMenus().addAll(optionsMenu);
+        
 
         //definir les actions quand on clique sur file ou edit
+        clearItem.setOnAction(e -> viewModel.clear());
         openItem.setOnAction(e -> viewModel.handleOpen());
         saveItem.setOnAction(e -> viewModel.handleSave());
 

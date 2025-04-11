@@ -97,10 +97,12 @@ public class SpreadsheetViewModel {
 
         //ouvrir la boite de dialogue
         File file = fileChooser.showOpenDialog(null);
-        if (file == null) {
-            return;
+        if (file != null) {
+            openFile(file);
         }
-
+    }
+    
+    public void openFile(File file){
         //lire le fichier
         try(BufferedReader reader = new BufferedReader(new FileReader(file))){
             //lire la premiere ligne "NB_LIGNES,NB_COLONNES"
@@ -136,10 +138,14 @@ public class SpreadsheetViewModel {
         fileChooser.setTitle("save file");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("E4E files (*.e4e)", "*.e4e"));
         File file = fileChooser.showSaveDialog(null);
-        if (file == null){
-            return;
+        if (file != null){
+            saveFile(file);
         }
 
+        
+    }
+    
+    public void saveFile(File file){
         //ecriture
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))){
             //<NB_LIGNES,NB_COLONNES
@@ -159,6 +165,17 @@ public class SpreadsheetViewModel {
             }
         } catch (IOException e){
             e.printStackTrace();
+        }
+    }
+    
+    public void clear(){
+        for (int r = 0; r < this.model.getRowCount(); r++){
+            for (int c = 0; c < this.model.getColumnCount(); c++){
+                String formula = this.model.getCell(r, c).getFormula();
+                if (formula != null && !formula.isEmpty()){
+                    this.model.getCell(r, c).setFormula(" ");
+                }
+            }
         }
     }
 

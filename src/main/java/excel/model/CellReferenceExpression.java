@@ -20,12 +20,6 @@ public class CellReferenceExpression extends Expression {
             return "#VALEUR";
         }
 
-        //Enregistrer que currentCell depend de cell
-        SpreadsheetCellModel currentCell = model.getCurrentCell(); //!!implementer getCurrentCell() dans SpreadsheetModel
-        /*if (currentCell != null) {
-            cell.addDependentCell(currentCell);
-        } */
-
         String value = cell.getValueBinding();
 
         //Si la cell est vide, on retourne #VALEUR
