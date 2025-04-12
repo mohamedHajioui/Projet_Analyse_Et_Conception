@@ -6,6 +6,8 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import org.controlsfx.control.spreadsheet.GridBase;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
@@ -24,6 +26,7 @@ public class MySpreadsheetView extends SpreadsheetView {
         this.setGrid(this.grid);
         configEditLogic();
         layoutSpreadSheet();
+        addKeyboardShortcuts();
     }
 
     private void layoutSpreadSheet() {
@@ -89,6 +92,19 @@ public class MySpreadsheetView extends SpreadsheetView {
         //On indique au VM le mode d'édition
         cellVM.setEditionMode(inEdition);
 
+    }
+    private void addKeyboardShortcuts() {
+        this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.isControlDown()) {
+                if (event.getCode() == KeyCode.Z) {
+                    // Appeler la méthode undo() du ViewModel
+                    viewModel.undo();
+                } else if (event.getCode() == KeyCode.Y) {
+                    // Appeler la méthode redo() du ViewModel
+                    viewModel.redo();
+                }
+            }
+        });
     }
 
 

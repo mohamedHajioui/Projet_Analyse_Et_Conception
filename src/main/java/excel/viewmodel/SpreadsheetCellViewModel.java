@@ -1,7 +1,9 @@
 package excel.viewmodel;
 
+import excel.model.Command;
+import excel.model.CommandManager;
 import excel.model.SpreadsheetCellModel;
-import javafx.application.Platform;
+import excel.model.SpreadsheetModel;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 
@@ -9,8 +11,10 @@ public class SpreadsheetCellViewModel {
     private final SpreadsheetCellModel model;
     private boolean inEdition = false; // true si la vue est en mode édition
     private ObjectProperty<Object> cellContentProperty;
+    private final SpreadsheetModel spreadsheetModel;
 
-    public SpreadsheetCellViewModel(SpreadsheetCellModel model) {
+    public SpreadsheetCellViewModel(SpreadsheetModel spreadsheetModel,SpreadsheetCellModel model) {
+        this.spreadsheetModel = spreadsheetModel;
         this.model = model;
     }
 
@@ -33,7 +37,8 @@ public class SpreadsheetCellViewModel {
         // Listener pour mettre à jour le modèle lorsque la cellule visuelle change en mode édition
         ChangeListener<Object> expressionSetterListener = (obs, ov, nv) -> {
             if (inEdition) { // Si on est en mode édition
-                model.setFormula(getStringFromObject(nv)); // Met à jour la formule dans le modèle
+                executecomand(getStringFromObject(nv));
+                setFormula(getStringFromObject(nv)); // Met à jour la formule dans le modèle
                 model.updatevalue();
             }
         };
@@ -58,11 +63,16 @@ public class SpreadsheetCellViewModel {
     public void setFormula(String formula) {
         model.setFormula(formula);
     }
+    public void executecomand(String formula) {
+        Command command = new CommandManager(model,formula);
+        spreadsheetModel.executeCommand(command);
+    }
     public void updateValue() {
         model.updatevalue();
     }
     public SpreadsheetCellModel getModel() {
         return model;
     }
+
 
 }

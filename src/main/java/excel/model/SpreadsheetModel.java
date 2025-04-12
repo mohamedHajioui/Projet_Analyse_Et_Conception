@@ -3,6 +3,7 @@ package excel.model;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.util.Stack;
 import java.util.stream.IntStream;
 
 public class SpreadsheetModel {
@@ -10,6 +11,8 @@ public class SpreadsheetModel {
     private final int columns;
     private final ObservableList<ObservableList<SpreadsheetCellModel>> data = FXCollections.observableArrayList();
     private SpreadsheetCellModel currentCell;
+    private final Stack<Command> undoStack = new Stack<>();
+    private final Stack<Command> redoStack = new Stack<>();
 
     public SpreadsheetModel(int rows, int columns) {
         this.rows = rows;
@@ -49,6 +52,32 @@ public class SpreadsheetModel {
         }
         data.add(newRow);
     }
+    public void executeCommand(Command command) {
+        command.execute();
+        undoStack.push(command);
+        redoStack.clear();
+    }
+    public void undo() {
+        if (!undoStack.isEmpty()) {
+            Command command = undoStack.pop();
+            command.undo();
+            redoStack.push(command);
+        }
+    }
+    public void redo() {
+        if (!redoStack.isEmpty()) {
+            Command command = redoStack.pop();
+            command.execute();
+            undoStack.push(command);
+        }
+    }
+    public boolean canUndo() {
+        return !undoStack.isEmpty();
+    }
+    public boolean canRedo() {
+        return !redoStack.isEmpty();
+    }
+
 
 
 }
