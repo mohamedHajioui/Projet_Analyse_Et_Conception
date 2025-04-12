@@ -7,13 +7,6 @@ public abstract class Expression{
     // La méthode interpret renvoie un Object
     public abstract Object interpret();
 
-    protected String formatNumber(double number){
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setDecimalSeparator('.');
-        DecimalFormat df = new DecimalFormat("#.##", symbols);
-        return df.format(number);
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Expression) {

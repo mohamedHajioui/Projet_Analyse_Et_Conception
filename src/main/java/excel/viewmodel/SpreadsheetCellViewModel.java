@@ -7,6 +7,9 @@ import excel.model.SpreadsheetModel;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+
 public class SpreadsheetCellViewModel {
     private final SpreadsheetCellModel model;
     private boolean inEdition = false; // true si la vue est en mode édition
@@ -53,8 +56,14 @@ public class SpreadsheetCellViewModel {
     }
 
     public String getCellValue() {
-        return model.getValueBinding();
-
+        String value = model.getValueBinding();
+        try {
+            // Essaie de formater si c'est un nombre
+            return formatNumber(value);
+        } catch (NumberFormatException e) {
+            // Si ce n'est pas un nombre, retourne la valeur telle quelle
+            return value;
+        }
     }
     public String getFormula() {
         return model.getFormulaProperty();
@@ -72,6 +81,23 @@ public class SpreadsheetCellViewModel {
     }
     public SpreadsheetCellModel getModel() {
         return model;
+    }
+    protected static String formatNumber(String value){
+         if (value != null) {
+            try {
+                String strValue = (value).replace(",", ".");
+                double doubleParse = Double.parseDouble(value);
+                DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+                symbols.setDecimalSeparator('.');
+                DecimalFormat df = new DecimalFormat("#.##" +
+                        "", symbols);
+                return df.format(doubleParse);
+            } catch (NumberFormatException e) {
+                throw new NumberFormatException("Invalid number: " + value);
+            }
+        }
+
+        return null;
     }
 
 

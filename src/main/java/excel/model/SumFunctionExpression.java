@@ -69,7 +69,7 @@ public class SumFunctionExpression extends Expression {
                 }
             }
         }
-        return formatNumber(sum);
+        return sum;
     }
 
     private int currentCellPropertyRow(SpreadsheetCellModel cell) {

@@ -9,7 +9,7 @@ public class NumberExpression extends Expression {
 
     @Override
     public Object interpret() {
-        return formatNumber(value);
+        return value;
     }
 }
 
