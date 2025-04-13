@@ -17,6 +17,15 @@ public class SpreadsheetModel {
         IntStream.range(0, rows).forEach(a -> addNewRow());
     }
 
+    public static void reset(int rows, int columns) {
+
+        this.rows = rows;
+        this.columns = columns;
+
+        data.clear();
+        IntStream.range(0,rows).forEach(a-> addNewRow());
+    }
+
     public void setCurrentCell(SpreadsheetCellModel cell) {
         this.currentCell = cell;
     }
