@@ -1,17 +1,38 @@
-package excel.view;
+package excel.viewmodel;
 
 import excel.model.SpreadsheetModel;
-import excel.viewmodel.SpreadsheetViewModel;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.regex.Pattern;
+import excel.viewmodel.SpreadsheetViewModel;
+import excel.view.MySpreadsheetView;
 
 public class SaveOpenFile {
     public static final FileChooser fileChooser = new FileChooser();
-    private static final Pattern CELL_LINE_PATTERN = Pattern.compile("^(\\d+),(\\d+);(.*)$");
+  //  private static final Pattern CELL_LINE_PATTERN = Pattern.compile("^(\\d+),(\\d+);(.*)$");
+
+    public static void handleOpen() {
+        //SaveOpenFile.openFile(viewModel);
+        File file = fileChooser.showOpenDialog(new Stage());
+        if (file != null) {
+            try {
+                SpreadsheetViewModel.loadFromFile(file);
+                MySpreadsheetView.refreshView();
+                MySpreadsheetView.getGrid().setRows(spreadsheetView.createGridAndBindings().getRows());
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public static void handleSave() {
+        saveFile(viewModel);
+    }
+
 
     static {
         fileChooser.getExtensionFilters().add(
@@ -108,4 +129,23 @@ public class SaveOpenFile {
 
         return model;
     }
+
+//    private void handleOpen() {
+//        //SaveOpenFile.openFile(viewModel);
+//        File file = fileChooser.showOpenDialog(new Stage());
+//        if (file != null) {
+//            try {
+//                viewModel.loadFromFile(file);
+//                spreadsheetView.refreshView();
+//                spreadsheetView.getGrid().setRows(spreadsheetView.createGridAndBindings().getRows());
+//
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
+//
+//    private void handleSave() {
+//        SaveOpenFile.saveFile(viewModel);
+//    }
 }
