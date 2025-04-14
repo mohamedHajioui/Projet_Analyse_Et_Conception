@@ -24,7 +24,7 @@ public class SpreadsheetViewModel {
 
         for (int i = 0; i < NB_ROW; i++) {
             for (int j = 0; j < NB_COL; j++) {
-                SpreadsheetCellViewModel cellViewModel = new SpreadsheetCellViewModel(model.getCell(i, j));
+                SpreadsheetCellViewModel cellViewModel = new SpreadsheetCellViewModel(model,model.getCell(i, j));
                 cellVMs.add(cellViewModel);
 
             }
@@ -88,6 +88,12 @@ public class SpreadsheetViewModel {
         if (selectedCellProperty().get() != null) {
             selectedCellProperty().get().updateValue();
         }
+    }
+    public void undo(){
+        model.undo();
+    }
+    public void redo(){
+        model.redo();
     }
 
     public void handleOpen(){

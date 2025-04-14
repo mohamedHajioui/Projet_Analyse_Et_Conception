@@ -129,7 +129,6 @@ public class SpreadsheetCellModel {
         String currentFormula = formulaProperty.get();
         formulaProperty.set("");
         formulaProperty.set(currentFormula);
-        System.out.println(dependentCells);
         if(!dependentCells.isEmpty()){
             for (SpreadsheetCellModel cell : new HashSet<>(dependentCells)) {
                 cell.updatevalue();
