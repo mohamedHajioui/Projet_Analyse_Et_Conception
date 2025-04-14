@@ -18,7 +18,6 @@ public class MainView extends BorderPane {
         VBox.setMargin(spreadsheetView, new Insets(5, 5, 5, 8));
         VBox.setMargin(menuBarView, new Insets(0, 5, 5, 8));
         VBox topBox = new VBox(menuBarView, textfield);
-
         this.setTop(topBox);
         this.setCenter(spreadsheetView);
     }
