@@ -12,17 +12,21 @@ import excel.view.MySpreadsheetView;
 
 public class SaveOpenFile {
     public static final FileChooser fileChooser = new FileChooser();
-  //  private static final Pattern CELL_LINE_PATTERN = Pattern.compile("^(\\d+),(\\d+);(.*)$");
+    private final SpreadsheetViewModel viewModel;
 
-    public static void handleOpen() {
+    public SaveOpenFile(SpreadsheetViewModel viewModel) {
+        this.viewModel = viewModel;
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Excel 4 EPFC Files", "*.e4e")
+        );
+    }
+
+    public void handleOpen() {
         //SaveOpenFile.openFile(viewModel);
         File file = fileChooser.showOpenDialog(new Stage());
         if (file != null) {
             try {
-                SpreadsheetViewModel.loadFromFile(file);
-                MySpreadsheetView.refreshView();
-                MySpreadsheetView.getGrid().setRows(spreadsheetView.createGridAndBindings().getRows());
-
+                viewModel.loadFromFile(file);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -30,15 +34,26 @@ public class SaveOpenFile {
     }
 
     public static void handleSave() {
-        saveFile(viewModel);
+        //saveFile(viewModel);
+        File file = fileChooser.showSaveDialog(new Stage());
+        if (file != null) {
+            try {
+                if (!file.getName().toLowerCase().endsWith(".e4e")) {
+                    file = new File(file.getAbsolutePath() + ".e4e");
+                }
+                saveToFile(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
-    static {
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Excel 4 EPFC Files", "*.e4e")
-        );
-    }
+//    static {
+//        fileChooser.getExtensionFilters().add(
+//                new FileChooser.ExtensionFilter("Excel 4 EPFC Files", "*.e4e")
+//        );
+//    }
 
     public static void saveFile(SpreadsheetViewModel viewModel) {
         File file = fileChooser.showSaveDialog(new Stage());
@@ -65,7 +80,7 @@ public class SaveOpenFile {
         }
     }
 
-    private static void saveToFile(SpreadsheetViewModel viewModel, File file) throws IOException {
+    private static void saveToFile(File file) throws IOException {
         try (PrintWriter writer = new PrintWriter(file)) {
             // il faut ajouter les dimensions
             writer.printf("%d,%d%n", viewModel.getRowCount(), viewModel.getColumnCount());
@@ -93,26 +108,8 @@ public class SaveOpenFile {
 
         SpreadsheetModel model = new SpreadsheetModel(rows, cols);
 
-
-
-
-
          //SpreadsheetViewModel.resetModel(rows, cols);
 
-        // goes through cell data
-//        for (int i = 1; i < lines.size(); i++) {
-//            String line = lines.get(i);
-//            var matcher = CELL_LINE_PATTERN.matcher(line);
-//            if (matcher.matches()) {
-//                int row = Integer.parseInt(matcher.group(1));
-//                int col = Integer.parseInt(matcher.group(2));
-//                String value = matcher.group(3);
-//
-//                if (row < rows && col < cols) {
-//                    viewModel.setCellValue(row, col, value);
-//                }
-//            }
-//        }
         for (int i = 1; i < lines.size(); i++) {
             String line = lines.get(i);
             String[] parts = line.split(";", 2);
@@ -129,23 +126,4 @@ public class SaveOpenFile {
 
         return model;
     }
-
-//    private void handleOpen() {
-//        //SaveOpenFile.openFile(viewModel);
-//        File file = fileChooser.showOpenDialog(new Stage());
-//        if (file != null) {
-//            try {
-//                viewModel.loadFromFile(file);
-//                spreadsheetView.refreshView();
-//                spreadsheetView.getGrid().setRows(spreadsheetView.createGridAndBindings().getRows());
-//
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
-//
-//    private void handleSave() {
-//        SaveOpenFile.saveFile(viewModel);
-//    }
 }
