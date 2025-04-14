@@ -22,6 +22,9 @@ public class MenuBarView extends HBox {
         fileMenu.getItems().addAll(openItem, saveItem);
         //edit
         Menu editMenu = new Menu("Edit");
+        MenuItem undoItem = new MenuItem("Undo");
+        MenuItem redoItem = new MenuItem("Redo");
+        editMenu.getItems().addAll(undoItem, redoItem);
         menuBar.getMenus().addAll(fileMenu, editMenu);
         Menu optionsMenu = new Menu("Options");
         MenuItem clearItem = new MenuItem("clear");
@@ -33,6 +36,8 @@ public class MenuBarView extends HBox {
         clearItem.setOnAction(e -> viewModel.clear());
         openItem.setOnAction(e -> viewModel.handleOpen());
         saveItem.setOnAction(e -> viewModel.handleSave());
+        undoItem.setOnAction(e -> viewModel.undo());
+        redoItem.setOnAction(e -> viewModel.redo());
 
         //ajouter dans le HBox
         getChildren().add(menuBar);

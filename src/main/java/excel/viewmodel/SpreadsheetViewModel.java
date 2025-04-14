@@ -163,7 +163,7 @@ public class SpreadsheetViewModel {
                 for (int c = 0; c < this.model.getColumnCount(); c++){
                     String formula = this.model.getCell(r, c).getFormula();
                     //Je sauvegarde que si ce n'est pas vide
-                    if (formula != null && !formula.isEmpty()){
+                    if (formula != null && !formula.isEmpty() && !formula.equals(" ")){
                         writer.write(c + "," + r + ";" + formula);
                         writer.newLine();
                     }
@@ -179,7 +179,7 @@ public class SpreadsheetViewModel {
             for (int c = 0; c < this.model.getColumnCount(); c++){
                 String formula = this.model.getCell(r, c).getFormula();
                 if (formula != null && !formula.isEmpty()){
-                    this.model.getCell(r, c).setFormula(" ");
+                    this.model.getCell(r, c).setFormula("");
                 }
             }
         }
