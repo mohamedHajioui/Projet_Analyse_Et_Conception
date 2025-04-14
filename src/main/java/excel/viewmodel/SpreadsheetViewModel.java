@@ -2,19 +2,24 @@ package excel.viewmodel;
 
 import excel.model.SpreadsheetModel;
 import excel.tools.ExcelConverter;
+import excel.view.SaveOpenFile;
 import javafx.beans.property.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SpreadsheetViewModel {
     private final int NB_ROW, NB_COL;
+    private SpreadsheetModel model;
     private final List<SpreadsheetCellViewModel> cellVMs = new ArrayList<>(); // Liste des VM associés aux cellules
     private final ObjectProperty<SpreadsheetCellViewModel> selectedCell = new SimpleObjectProperty<>(); // Cellule sélectionnée
     private final StringProperty selectedCellContent = new SimpleStringProperty(""); // Le contenu de la cellule sélectionnée (formule ou valeur)
     private final StringProperty selectedCellFormula = new SimpleStringProperty(""); // Exprression de la cellule sélectionnée
 
     public SpreadsheetViewModel(SpreadsheetModel model) {
+        this.model = model;
         this.NB_ROW = model.getRowCount();
         this.NB_COL = model.getColumnCount();
 
@@ -46,7 +51,7 @@ public class SpreadsheetViewModel {
 
                     // Si la cellule référencée correspond à la cellule modifiée, on met à jour la cellule
                     if (referencedRow == row && referencedCol == column) {
-                        cellViewModel.updateValue(); ;
+                        cellViewModel.updateValue();
 
 
                         break;
@@ -112,4 +117,48 @@ public class SpreadsheetViewModel {
     public StringProperty selectedCellFormulaProperty() {
         return selectedCellFormula; // Expose la formule brute de la cellule sélectionnée
     }
+
+
+
+    public void resetModel(int rows, int cols) {
+        this.model = SpreadsheetModel.newSpreadsheetModel(rows, cols);
+        cellVMs.clear();
+        for (int i = 0; i < rows; ++i) {
+            for (int j= 0; j < cols; ++j) {
+                SpreadsheetCellViewModel cellVM = new SpreadsheetCellViewModel(model.getCell(i,j));
+                cellVMs.add(cellVM);
+                final int rowIndex = i;
+                final int colIndex = j;
+                cellVM.getModel().valueBindingProperty().addListener((observable, oldValue, newValue) -> {
+                    updateDependentCells(rowIndex, colIndex);
+                });
+            }
+        }
+    }
+
+    public void loadFromFile(File file) throws IOException {
+        SpreadsheetModel newModel = SaveOpenFile.loadFromFile(file);
+        this.model = newModel;
+
+        // Rebuild cell view models
+        cellVMs.clear();
+        for (int i = 0; i < newModel.getRowCount(); i++) {
+            for (int j = 0; j < newModel.getColumnCount(); j++) {
+                SpreadsheetCellViewModel cellVM = new SpreadsheetCellViewModel(newModel.getCell(i, j));
+                cellVMs.add(cellVM);
+                final int rowIndex = i;
+                final int colIndex = j;
+                cellVM.getModel().valueBindingProperty().addListener((observable, oldValue, newValue) -> {
+                    updateDependentCells(rowIndex, colIndex);
+                });
+            }
+        }
+
+        // Update any UI bindings
+        if (!cellVMs.isEmpty()) {
+            setSelectedCell(0, 0); // Reset selection
+        }
+    }
+
+
 }

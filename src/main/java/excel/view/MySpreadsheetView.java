@@ -98,5 +98,10 @@ public class MySpreadsheetView extends SpreadsheetView {
         }
     }
 
+    public void refreshView() {
+        this.setGrid(createGridAndBindings());
+        layoutSpreadSheet();
+    }
+
 
 }

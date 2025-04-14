@@ -5,13 +5,23 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
-import jdk.jfr.consumer.EventStream;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import org.controlsfx.control.spreadsheet.SpreadsheetView;
+
+import java.io.File;
+import java.io.IOException;
+
+import static excel.view.SaveOpenFile.fileChooser;
 
 public class MainView extends BorderPane {
     private final SpreadsheetViewModel viewModel;
+    private final FileChooser fileChooser = new FileChooser();
+    private final MySpreadsheetView spreadsheetView;
 
     public MainView(SpreadsheetViewModel viewModel) {
         this.viewModel = viewModel;
+        this.spreadsheetView = new MySpreadsheetView(viewModel);
         initializeUI();
     }
 
@@ -37,11 +47,20 @@ public class MainView extends BorderPane {
     }
 
     private void handleOpen() {
-        FileIOHelper.openFile(viewModel);
+        //SaveOpenFile.openFile(viewModel);
+        File file = fileChooser.showOpenDialog(new Stage());
+        if (file != null) {
+            try {
+                viewModel.loadFromFile(file);
+                spreadsheetView.refreshView();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private void handleSave() {
-        FileIOHelper.saveFile(viewModel);
+        SaveOpenFile.saveFile(viewModel);
     }
 }
 
