@@ -53,6 +53,8 @@ public class MainView extends BorderPane {
             try {
                 viewModel.loadFromFile(file);
                 spreadsheetView.refreshView();
+                spreadsheetView.getGrid().setRows(spreadsheetView.createGridAndBindings().getRows());
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -31,15 +31,18 @@ public class MySpreadsheetView extends SpreadsheetView {
         }
     }
 
-    private GridBase createGridAndBindings() {
+    GridBase createGridAndBindings() {
         GridBase grid = new GridBase(viewModel.getRowCount(), viewModel.getColumnCount());
         ObservableList<ObservableList<SpreadsheetCell>> rows = FXCollections.observableArrayList();
 
         for (int row = 0; row < grid.getRowCount(); ++row) {
             final ObservableList<SpreadsheetCell> list = FXCollections.observableArrayList();
             for (int column = 0; column < grid.getColumnCount(); ++column) {
-                SpreadsheetCell cell = SpreadsheetCellType.STRING.createCell(row, column, 1, 1, "");
+
+
                 SpreadsheetCellViewModel cellVM = viewModel.getCellViewModel(row, column); // On récupère le VM de la cellule
+                String cellValue = cellVM.getCellValue();
+                SpreadsheetCell cell = SpreadsheetCellType.STRING.createCell(row, column, 1, 1, cellValue);
                 cellVM.setCellContentProperty(cell.itemProperty()); // On passe la ref de itemProperty au VM
                 cell.itemProperty().set(viewModel.getCellValue(row, column));
                 list.add(cell);

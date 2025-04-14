@@ -62,7 +62,11 @@ public class SpreadsheetCellViewModel {
     public void updateValue() {
         // Cette méthode sera appelée pour recalculer la valeur de la cellule
         String newValue = model.calculateValue();
-        this.cellContentProperty.set(newValue);
+        if (this.cellContentProperty !=null) {
+            this.cellContentProperty.set(newValue);
+        }
+        model.valueBindingProperty().invalidate();
+
 
 
 

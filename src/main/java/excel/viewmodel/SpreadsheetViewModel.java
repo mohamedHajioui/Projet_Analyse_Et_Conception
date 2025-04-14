@@ -148,11 +148,21 @@ public class SpreadsheetViewModel {
                 cellVMs.add(cellVM);
                 final int rowIndex = i;
                 final int colIndex = j;
+
+                String loadedValue = cellVM.getModel().calculateValue();
+                cellVM.updateValue();
                 cellVM.getModel().valueBindingProperty().addListener((observable, oldValue, newValue) -> {
                     updateDependentCells(rowIndex, colIndex);
                 });
             }
         }
+        for (SpreadsheetCellViewModel cellVM : cellVMs) {
+            if (cellVM.getFormula().startsWith("=")) {
+                cellVM.updateValue();
+            }
+        }
+
+        setSelectedCell(0, 0);
 
         // Update any UI bindings
         if (!cellVMs.isEmpty()) {
