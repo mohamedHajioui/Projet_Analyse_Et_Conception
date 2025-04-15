@@ -124,16 +124,50 @@ public class SpreadsheetCellModel {
         }
         return cellReferences;
     }
-    public void updatevalue(){
-        //cleanDependencies();
-        String currentFormula = formulaProperty.get();
-        formulaProperty.set("");
-        formulaProperty.set(currentFormula);
-        if(!dependentCells.isEmpty()){
-            for (SpreadsheetCellModel cell : new HashSet<>(dependentCells)) {
-                cell.updatevalue();
+    private boolean isUpdating = false;
+    public void updatevalue() {
+        // Éviter les mises à jour récursives
+        if (isUpdating) {
+            return;
+        }
+        /*public void updatevalue(){
+            //cleanDependencies();
+            String currentFormula = formulaProperty.get();
+            formulaProperty.set("");
+            formulaProperty.set(currentFormula);
+            if(!dependentCells.isEmpty()){
+                for (SpreadsheetCellModel cell : new HashSet<>(dependentCells)) {
+                    cell.updatevalue();
 
+                }
+            }*/
+
+        try {
+            isUpdating = true;
+
+            String currentFormula = formulaProperty.get();
+            // Vérifier si c'est une formule SUM et si elle contient une référence circulaire
+            if (currentFormula.toUpperCase().startsWith("=SUM(")) {
+                Set<SpreadsheetCellModel> visitedCells = new HashSet<>();
+                if (checkCircularReference(this, visitedCells)) {
+                    formulaProperty.set("#CIRCULAR_REF");
+                    return;
+                }
             }
+
+            formulaProperty.set("");
+            formulaProperty.set(currentFormula);
+
+            // Mettre à jour les cellules dépendantes
+            if (!dependentCells.isEmpty()) {
+                // Créer une copie pour éviter les ConcurrentModificationException
+                Set<SpreadsheetCellModel> cellsToUpdate = new HashSet<>(dependentCells);
+                for (SpreadsheetCellModel cell : cellsToUpdate) {
+                    cell.updatevalue();
+                }
+            }
+        } finally {
+            isUpdating = false;
         }
     }
 
