@@ -19,7 +19,7 @@ public class SpreadsheetCellModel {
     private final int row;
     private final int column;
     private final SpreadsheetModel model;
-    private final Set<SpreadsheetCellModel> dependentCells = new HashSet<>();
+    protected final Set<SpreadsheetCellModel> dependentCells = new HashSet<>();
 
 
     public SpreadsheetCellModel(String value, int row, int column, SpreadsheetModel model) {
@@ -135,7 +135,6 @@ public class SpreadsheetCellModel {
 
             }
         }
-
     }
 
     public String getValue() {

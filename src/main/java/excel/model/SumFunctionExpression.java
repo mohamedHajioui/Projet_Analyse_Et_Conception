@@ -37,16 +37,30 @@ public class SumFunctionExpression extends Expression {
             return "SYNTAX_ERROR";
         }
 
+
         // 3) Vérifier la référence circulaire
         SpreadsheetCellModel currentCell = model.getCurrentCell();
         if (currentCell != null) {
-            // Récupérer les coords (row, col) de la cellule courante
             int currentRow = currentCellPropertyRow(currentCell);
             int currentCol = currentCellPropertyCol(currentCell);
-            if (currentRow >= row1 && currentRow <= row2 && currentCol >= col1 && currentCol <= col2) {
+            if (currentRow >= row1 && currentRow <= row2
+                    && currentCol >= col1 && currentCol <= col2) {
                 return "CIRCULAR_REF";
             }
         }
+
+        if (currentCell != null) {
+            for (int r = row1; r <= row2; r++) {
+                for (int c = col1; c <= col2; c++) {
+                    SpreadsheetCellModel referencedCell = model.getCell(r, c);
+                    if (referencedCell != null) {
+                        // Ajoute la cellule contenant le SUM comme dépendante de la cellule référencée
+                        referencedCell.dependentCells.add(currentCell);
+                    }
+                }
+            }
+        }
+
 
         // 4) Parcourir toutes les cellules de la plage et faire la somme
         double sum = 0.0;
