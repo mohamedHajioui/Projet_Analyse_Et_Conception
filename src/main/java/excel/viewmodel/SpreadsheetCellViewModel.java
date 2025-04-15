@@ -32,15 +32,8 @@ public class SpreadsheetCellViewModel {
 
         // Listener pour mettre à jour le contenu de la cellule visuelle lorsque la valeur change dans le modèle
         ChangeListener<Object> valueListener = (obs, ov, nv) -> {
-            if (!inEdition) {
-                String value = getStringFromObject(nv);
-                try {
-                    // Appliquer le formatage directement
-                    this.cellContentProperty.set(formatNumber(value));
-                } catch (NumberFormatException e) {
-                    // Si ce n'est pas un nombre, afficher la valeur telle quelle
-                    this.cellContentProperty.set(value);
-                }
+            if (!inEdition) { // Si on n'est pas en mode édition
+                this.cellContentProperty.set(getStringFromObject(nv));
             }
         };
         // On associe ce listener à la propriété de la valeur calculée (valueBinding)
