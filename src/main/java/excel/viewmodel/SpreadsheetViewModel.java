@@ -16,6 +16,8 @@ public class SpreadsheetViewModel {
     private final StringProperty selectedCellContent = new SimpleStringProperty(""); // Le contenu de la cellule sélectionnée (formule ou valeur)
     private final StringProperty selectedCellFormula = new SimpleStringProperty(""); // Exprression de la cellule sélectionnée
     private final SpreadsheetModel model;
+    private final BooleanProperty canUndo = new SimpleBooleanProperty(false);
+    private final BooleanProperty canRedo = new SimpleBooleanProperty(false);
 
     public SpreadsheetViewModel(SpreadsheetModel model) {
         this.NB_ROW = model.getRowCount();
@@ -24,11 +26,12 @@ public class SpreadsheetViewModel {
 
         for (int i = 0; i < NB_ROW; i++) {
             for (int j = 0; j < NB_COL; j++) {
-                SpreadsheetCellViewModel cellViewModel = new SpreadsheetCellViewModel(model,model.getCell(i, j));
+                SpreadsheetCellViewModel cellViewModel = new SpreadsheetCellViewModel(model,model.getCell(i, j),this);
                 cellVMs.add(cellViewModel);
 
             }
         }
+        updateUndoRedoState();
     }
 
     // Récuperer le SpreadsheetCellViewModel associé à une cellule donnée
@@ -89,11 +92,28 @@ public class SpreadsheetViewModel {
             selectedCellProperty().get().updateValue();
         }
     }
-    public void undo(){
-        model.undo();
+    public BooleanProperty canUndoProperty() {
+        return canUndo;
     }
-    public void redo(){
+
+    public BooleanProperty canRedoProperty() {
+        return canRedo;
+    }
+    public void undo() {
+        model.undo();
+        updateUndoRedoState();
+    }
+
+    public void redo() {
         model.redo();
+        updateUndoRedoState();
+    }
+
+    public void updateUndoRedoState() {
+        boolean canUndoValue = model.canUndo();
+        boolean canRedoValue = model.canRedo();
+        canUndo.set(canUndoValue);
+        canRedo.set(canRedoValue);
     }
 
     public void handleOpen(){

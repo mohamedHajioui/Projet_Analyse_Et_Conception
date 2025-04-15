@@ -31,7 +31,8 @@ public class MenuBarView extends HBox {
         MenuItem clearItem = new MenuItem("clear");
         optionsMenu.getItems().addAll(clearItem);
         menuBar.getMenus().addAll(optionsMenu);
-        
+        undoItem.disableProperty().bind(viewModel.canUndoProperty().not());
+        redoItem.disableProperty().bind(viewModel.canRedoProperty().not());
 
         //definir les actions quand on clique sur file ou edit
         clearItem.setOnAction(e -> viewModel.clear());
