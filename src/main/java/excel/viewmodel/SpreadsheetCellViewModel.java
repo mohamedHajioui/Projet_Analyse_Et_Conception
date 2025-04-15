@@ -15,10 +15,12 @@ public class SpreadsheetCellViewModel {
     private boolean inEdition = false; // true si la vue est en mode édition
     private ObjectProperty<Object> cellContentProperty;
     private final SpreadsheetModel spreadsheetModel;
+    private final SpreadsheetViewModel spreadsheetViewModel;
 
-    public SpreadsheetCellViewModel(SpreadsheetModel spreadsheetModel,SpreadsheetCellModel model) {
+    public SpreadsheetCellViewModel(SpreadsheetModel spreadsheetModel,SpreadsheetCellModel model,SpreadsheetViewModel spreadsheetViewModel) {
         this.spreadsheetModel = spreadsheetModel;
         this.model = model;
+        this.spreadsheetViewModel = spreadsheetViewModel;
     }
 
     private static String getStringFromObject(Object value) {
@@ -39,10 +41,13 @@ public class SpreadsheetCellViewModel {
 
         // Listener pour mettre à jour le modèle lorsque la cellule visuelle change en mode édition
         ChangeListener<Object> expressionSetterListener = (obs, ov, nv) -> {
-            if (inEdition) { // Si on est en mode édition
-                executecomand(getStringFromObject(nv));
-                setFormula(getStringFromObject(nv)); // Met à jour la formule dans le modèle
-                model.updatevalue();
+            if (inEdition) {
+                String newValue = getStringFromObject(nv);
+                if (!newValue.equals(model.getFormulaProperty())) {  // Vérification supplémentaire
+                    executecomand(newValue);
+                    setFormula(newValue);
+                    model.updatevalue();
+                }
             }
         };
         // On associe le listener à la propriété de contenu visuel de la cellule
@@ -73,8 +78,14 @@ public class SpreadsheetCellViewModel {
         model.setFormula(formula);
     }
     public void executecomand(String formula) {
-        Command command = new CommandManager(model,formula);
-        spreadsheetModel.executeCommand(command);
+        // Ne créer une commande que si la nouvelle formule est différente de l'ancienne
+        String currentFormula = model.getFormulaProperty();
+        if (!formula.equals(currentFormula)) {  // Ajoutez cette vérification
+            System.out.println("Executing command avec formula: " + formula);
+            Command command = new CommandManager(model, formula);
+            spreadsheetModel.executeCommand(command);
+            spreadsheetViewModel.updateUndoRedoState();
+        }
     }
     public void updateValue() {
         model.updatevalue();
