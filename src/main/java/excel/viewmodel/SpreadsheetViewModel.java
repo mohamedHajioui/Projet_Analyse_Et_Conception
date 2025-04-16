@@ -196,4 +196,26 @@ public class SpreadsheetViewModel {
         }
     }
 
+    private String copiedValue = "";
+
+
+
+
+    public void copySelectedCell() {
+        if (selectedCellProperty().get() != null) {
+            copiedValue = selectedCellProperty().get().getFormula();
+        }
+    }
+
+    public void pasteToSelectedCell() {
+        if(!copiedValue.isEmpty()){
+            selectedCell.get().executecomand(copiedValue);
+            updateUndoRedoState();
+        }
+    }
+
+    public boolean copiedContent() {
+        return !copiedValue.isEmpty();
+    }
+
 }
