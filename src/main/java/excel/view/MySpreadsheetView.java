@@ -110,6 +110,10 @@ public class MySpreadsheetView extends SpreadsheetView {
                 } else if (event.getCode() == KeyCode.Y) {
                     // Appeler la méthode redo() du ViewModel
                     viewModel.redo();
+                } else if (event.getCode() == KeyCode.C) {
+                    viewModel.copySelectedCell();
+                } else if (event.getCode() == KeyCode.V) {
+                    viewModel.pasteToSelectedCell();
                 }
             }
         });
