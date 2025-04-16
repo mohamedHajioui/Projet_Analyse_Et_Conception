@@ -18,12 +18,13 @@ public class MenuBarView extends HBox {
         menuBar = new MenuBar();
         Menu fileMenu = new Menu("File");
         MenuItem openItem = new MenuItem("Open");
+        openItem.setOnAction(e -> handleFile.handleOpen());
         MenuItem saveItem = new MenuItem("Save");
+        saveItem.setOnAction(e -> handleFile.handleSave());
         fileMenu.getItems().addAll(openItem, saveItem);
         menuBar.getMenus().add(fileMenu);
 
-        openItem.setOnAction(e -> handleFile.handleOpen());
-        saveItem.setOnAction(e -> handleFile.handleSave());
+
         this.getChildren().add(menuBar);
     }
 }
