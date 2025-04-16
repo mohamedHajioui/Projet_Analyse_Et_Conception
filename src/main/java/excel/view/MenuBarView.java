@@ -1,9 +1,13 @@
 package excel.view;
 
 import excel.viewmodel.SpreadsheetViewModel;
+import javafx.beans.binding.Bindings;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
 
 public class MenuBarView extends HBox {
@@ -24,7 +28,9 @@ public class MenuBarView extends HBox {
         Menu editMenu = new Menu("Edit");
         MenuItem undoItem = new MenuItem("Undo");
         MenuItem redoItem = new MenuItem("Redo");
-        editMenu.getItems().addAll(undoItem, redoItem);
+        MenuItem copyItem = new MenuItem("Copy");
+        MenuItem pasteItem = new MenuItem("Paste");
+        editMenu.getItems().addAll(undoItem, redoItem, copyItem, pasteItem);
         menuBar.getMenus().addAll(fileMenu, editMenu);
         Menu optionsMenu = new Menu("Options");
         MenuItem clearItem = new MenuItem("clear");
@@ -32,6 +38,7 @@ public class MenuBarView extends HBox {
         menuBar.getMenus().addAll(optionsMenu);
         undoItem.disableProperty().bind(viewModel.canUndoProperty().not());
         redoItem.disableProperty().bind(viewModel.canRedoProperty().not());
+        pasteItem.disableProperty().bind(Bindings.createBooleanBinding( () -> !viewModel.copiedContent(), viewModel.selectedCellProperty()));
 
         //definir les actions quand on clique sur file ou edit
         clearItem.setOnAction(e -> viewModel.clear());
@@ -39,6 +46,8 @@ public class MenuBarView extends HBox {
         saveItem.setOnAction(e -> viewModel.handleSave());
         undoItem.setOnAction(e -> viewModel.undo());
         redoItem.setOnAction(e -> viewModel.redo());
+        copyItem.setOnAction(e-> viewModel.copySelectedCell());
+        pasteItem.setOnAction(e->viewModel.pasteToSelectedCell());
 
         //ajouter dans le HBox
         this.getChildren().add(menuBar);
