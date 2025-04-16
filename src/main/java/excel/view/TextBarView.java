@@ -22,6 +22,7 @@ public class TextBarView extends HBox {
         // Lorsqu'on appuie sur Entrée, on met à jour la cellule sélectionnée
         formulaField.setOnAction(e -> {
             viewModel.updateSelectedCell(formulaField.getText()); // Met à jour la cellule avec la nouvelle formule
+            viewModel.updateDependenciesForSelectedCell();
         });
 
         this.getChildren().add(formulaField);

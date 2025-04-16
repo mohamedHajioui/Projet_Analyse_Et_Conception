@@ -2,9 +2,12 @@ package excel.view;
 
 import excel.viewmodel.SpreadsheetCellViewModel;
 import excel.viewmodel.SpreadsheetViewModel;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import org.controlsfx.control.spreadsheet.GridBase;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
@@ -23,6 +26,7 @@ public class MySpreadsheetView extends SpreadsheetView {
         this.setGrid(this.grid);
         configEditLogic();
         layoutSpreadSheet();
+        addKeyboardShortcuts();
     }
 
     private void layoutSpreadSheet() {
@@ -55,13 +59,17 @@ public class MySpreadsheetView extends SpreadsheetView {
 
     private void configEditLogic() {
         editingCellProperty().addListener((observable, oldValue, newValue) -> {
-            boolean editMode = newValue != null; // true si la cellule est en mode édition
+            boolean editMode = (newValue != null);
             if (editMode) {
-                changeEditionMode(true); // Activer le mode édition pour le VM
+                // Si on rentre en édition
+                changeEditionMode(true);
+            } else {
+                // Si on quitte l’édition
+                changeEditionMode(false);
             }
         });
 
-        // Listener pour gérer la sélection d'une cellule
+        // Listener pour gérer la sélection d'une cellule (inchangé)
         this.getSelectionModel().getSelectedCells().addListener((InvalidationListener) il -> {
             if (getSelectionModel().getSelectedCells().isEmpty()) {
                 changeEditionMode(false);
@@ -75,6 +83,7 @@ public class MySpreadsheetView extends SpreadsheetView {
         });
     }
 
+
     // Quand une nouvelle cellule est sélectionnée, on désactive le mode édition de l'ancienne cellule
     private void updateSelectedCellInView(int row, int col) {
         changeEditionMode(false);
@@ -82,24 +91,27 @@ public class MySpreadsheetView extends SpreadsheetView {
     }
 
     private void changeEditionMode(boolean inEdition) {
-        if (selectedCell == null) return; // Si aucune cellule n'est sélectionnée, rien à faire
+        if (selectedCell == null) return; //Si aucune cellule n'est sélectionnée, on ne fait rien
 
-        // On récupère le VM de la cellule sélectionnée
+        //Obtenir le VM correspondant à la cellule sélectionnée
         SpreadsheetCellViewModel cellVM = viewModel.getCellViewModel(selectedCell.getRow(), selectedCell.getColumn());
 
-        if (inEdition) {
-            cellVM.setEditionMode(true);
-        } else {
-            cellVM.setEditionMode(false);
-            cellVM.updateValue();
-        }
 
-        if (!inEdition) {
-            int row = selectedCell.getRow();
-            int col = selectedCell.getColumn();
-            viewModel.updateDependentCells(row, col); // Recalcule les cellules dépendantes
-        }
+        //On indique au VM le mode d'édition
+        cellVM.setEditionMode(inEdition);
+
     }
-
-
+    private void addKeyboardShortcuts() {
+        this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.isControlDown()) {
+                if (event.getCode() == KeyCode.Z) {
+                    // Appeler la méthode undo() du ViewModel
+                    viewModel.undo();
+                } else if (event.getCode() == KeyCode.Y) {
+                    // Appeler la méthode redo() du ViewModel
+                    viewModel.redo();
+                }
+            }
+        });
+    }
 }

@@ -5,63 +5,34 @@ import excel.tools.ExcelConverter;
 import javafx.beans.property.*;
 import javafx.stage.FileChooser;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SpreadsheetViewModel {
     private final int NB_ROW, NB_COL;
-    private SpreadsheetModel model;
+    private final SpreadsheetModel model;
     private final List<SpreadsheetCellViewModel> cellVMs = new ArrayList<>(); // Liste des VM associés aux cellules
     private final ObjectProperty<SpreadsheetCellViewModel> selectedCell = new SimpleObjectProperty<>(); // Cellule sélectionnée
     private final StringProperty selectedCellContent = new SimpleStringProperty(""); // Le contenu de la cellule sélectionnée (formule ou valeur)
     private final StringProperty selectedCellFormula = new SimpleStringProperty(""); // Exprression de la cellule sélectionnée
-    private final FileChooser fileChooser = new FileChooser();
+    private final BooleanProperty canUndo = new SimpleBooleanProperty(false);
+    private final BooleanProperty canRedo = new SimpleBooleanProperty(false);
 
     public SpreadsheetViewModel(SpreadsheetModel model) {
         this.NB_ROW = model.getRowCount();
         this.NB_COL = model.getColumnCount();
-
+        this.model = model;
 
         for (int i = 0; i < NB_ROW; i++) {
             for (int j = 0; j < NB_COL; j++) {
-                SpreadsheetCellViewModel cellViewModel = new SpreadsheetCellViewModel(model.getCell(i, j));
+                SpreadsheetCellViewModel cellViewModel = new SpreadsheetCellViewModel(model,model.getCell(i, j),this);
                 cellVMs.add(cellViewModel);
-                final int rowIndex = i;
-                final int colIndex = j;
 
-                cellViewModel.getModel().valueBindingProperty().addListener((observable, oldValue, newValue) -> {
-                    // Si la cellule change, on vérifie ses dépendances et on les met à jour
-                    System.out.println("Cell value changed: " + oldValue + " -> " + newValue);
-                    updateDependentCells(rowIndex, colIndex);
-                });
             }
         }
+        updateUndoRedoState();
     }
-    public void updateDependentCells(int row, int column) {
-        for (SpreadsheetCellViewModel cellViewModel : cellVMs) {
-            String formula = cellViewModel.getFormula();  // Récupère la formule de la cellule
-
-            if (formula.startsWith("=")) {  // Si la cellule a une formule, on vérifie ses dépendances
-                List<String> cellReferences = ExcelConverter.extractCellReferences(formula);
-                for (String reference : cellReferences) {
-                    int[] cellIndices = ExcelConverter.excelToRowCol(reference);
-                    int referencedRow = cellIndices[0];
-                    int referencedCol = cellIndices[1];
-
-                    // Si la cellule référencée correspond à la cellule modifiée, on met à jour la cellule
-                    if (referencedRow == row && referencedCol == column) {
-                        cellViewModel.updateValue();
-
-
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
 
     // Récuperer le SpreadsheetCellViewModel associé à une cellule donnée
     public SpreadsheetCellViewModel getCellViewModel(int line, int column) {
@@ -81,9 +52,7 @@ public class SpreadsheetViewModel {
         return getCellViewModel(line, col).getCellValue(); // Accède à la valeur de la cellule
     }
 
-    public void setCellValue(int line, int column, String value) {
-        getCellViewModel(line, column).setCellValue(value); // Met à jour la valeur de la cellule
-    }
+
 
 
     public StringProperty selectedCellContentProperty() {
@@ -117,6 +86,122 @@ public class SpreadsheetViewModel {
     public StringProperty selectedCellFormulaProperty() {
         return selectedCellFormula; // Expose la formule brute de la cellule sélectionnée
     }
+    public void updateDependenciesForSelectedCell() {
+        if (selectedCellProperty().get() != null) {
+            selectedCellProperty().get().updateValue();
+        }
+    }
+    public BooleanProperty canUndoProperty() {
+        return canUndo;
+    }
 
+    public BooleanProperty canRedoProperty() {
+        return canRedo;
+    }
+    public void undo() {
+        model.undo();
+        updateUndoRedoState();
+    }
+
+    public void redo() {
+        model.redo();
+        updateUndoRedoState();
+    }
+
+    public void updateUndoRedoState() {
+        boolean canUndoValue = model.canUndo();
+        boolean canRedoValue = model.canRedo();
+        canUndo.set(canUndoValue);
+        canRedo.set(canRedoValue);
+    }
+
+    public void handleOpen(){
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open file");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("E4E files (*.e4e)", "*.e4e"));
+
+        //ouvrir la boite de dialogue
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            openFile(file);
+        }
+    }
+
+    public void openFile(File file){
+        //lire le fichier
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))){
+            //lire la premiere ligne "NB_LIGNES,NB_COLONNES"
+            String line = reader.readLine();
+            if (line == null){
+                return;
+            }
+
+            String[] sizeParts = line.split(",");
+            int nbRows = Integer.parseInt(sizeParts[0].trim());
+            int nbCols = Integer.parseInt(sizeParts[1].trim());
+
+            String cellLine;
+            while ((cellLine = reader.readLine()) != null) {
+                String[] rowColAndValue = cellLine.split(";");
+                if (rowColAndValue.length != 2) continue;
+
+                String[] rowColParts = rowColAndValue[0].split(",");
+                int row = Integer.parseInt(rowColParts[0].trim());
+                int col = Integer.parseInt(rowColParts[1].trim());
+                String content = rowColAndValue[1];
+
+                this.model.getCell(col, row).setFormula(content);
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void handleSave(){
+        //choix du fichier
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("save file");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("E4E files (*.e4e)", "*.e4e"));
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null){
+            saveFile(file);
+        }
+
+
+    }
+
+    public void saveFile(File file){
+        //ecriture
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))){
+            //<NB_LIGNES,NB_COLONNES
+            writer.write(this.model.getRowCount() + "," + this.model.getColumnCount());
+            writer.newLine();
+
+            //parcourir toutes les cellules
+            for (int r = 0; r < this.model.getRowCount(); r++){
+                for (int c = 0; c < this.model.getColumnCount(); c++){
+                    String formula = this.model.getCell(r, c).getFormula();
+                    //Je sauvegarde que si ce n'est pas vide
+                    if (formula != null && !formula.isEmpty() && !formula.equals(" ")){
+                        writer.write(c + "," + r + ";" + formula);
+                        writer.newLine();
+                    }
+                }
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void clear(){
+        for (int r = 0; r < this.model.getRowCount(); r++){
+            for (int c = 0; c < this.model.getColumnCount(); c++){
+                String formula = this.model.getCell(r, c).getFormula();
+                if (formula != null && !formula.isEmpty()){
+                    this.model.getCell(r, c).setFormula("");
+                }
+            }
+        }
+    }
 
 }

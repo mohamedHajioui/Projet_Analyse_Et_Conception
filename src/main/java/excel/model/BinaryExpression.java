@@ -1,6 +1,7 @@
 package excel.model;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 public abstract class BinaryExpression extends Expression {
     private Expression left;
@@ -45,7 +46,7 @@ public abstract class BinaryExpression extends Expression {
                 return compare(leftNum, rightNum);
             } else {
                 double result = operator(leftNum, rightNum);
-                return formatNumber(result);
+                return result;
             }
         } catch (NumberFormatException | ClassCastException e) {
             return "SYNTAX_ERROR";
@@ -55,18 +56,8 @@ public abstract class BinaryExpression extends Expression {
     protected double convertToDouble(Object value) {
         if (value instanceof Double) {
             return (Double) value;
-        } else if (value instanceof String) {
-            try {
-                return Double.parseDouble((String) value);
-            } catch (NumberFormatException e) {
-                throw new NumberFormatException("Invalid number: " + value);
-            }
         }
         throw new NumberFormatException("Invalid type: " + value);
     }
 
-    protected String formatNumber(double number) {
-        DecimalFormat df = new DecimalFormat("#.##");
-        return df.format(number);
-    }
 }
