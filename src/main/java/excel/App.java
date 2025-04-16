@@ -5,14 +5,8 @@ import excel.model.SpreadsheetModel;
 import excel.view.MainView;
 import excel.viewmodel.SpreadsheetViewModel;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import org.controlsfx.control.spreadsheet.GridBase;
-import org.controlsfx.control.spreadsheet.SpreadsheetCell;
-import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
-import org.controlsfx.control.spreadsheet.SpreadsheetView;
 
 import java.io.File;
 
@@ -36,8 +30,8 @@ public class App extends Application {
 
     @Override
     public void stop() throws Exception {
-        File lasSessionFile = new File("autoSave.e4e");
-        viewModel.saveFile(lasSessionFile);
+        File lastSessionFile = new File("autoSave.e4e");
+        viewModel.saveFile(lastSessionFile);
         super.stop();
     }
     

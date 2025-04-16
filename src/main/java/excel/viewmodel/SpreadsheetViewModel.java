@@ -119,18 +119,17 @@ public class SpreadsheetViewModel {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open file");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("E4E files (*.e4e)", "*.e4e"));
-
-        //ouvrir la boite de dialogue
+        //ouvrir boite de dialogue
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
             openFile(file);
         }
     }
 
+
     public void openFile(File file){
         //lire le fichier
         try(BufferedReader reader = new BufferedReader(new FileReader(file))){
-            //lire la premiere ligne "NB_LIGNES,NB_COLONNES"
             String line = reader.readLine();
             if (line == null){
                 return;
@@ -158,7 +157,6 @@ public class SpreadsheetViewModel {
     }
 
     public void handleSave(){
-        //choix du fichier
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("save file");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("E4E files (*.e4e)", "*.e4e"));
@@ -166,24 +164,18 @@ public class SpreadsheetViewModel {
         if (file != null){
             saveFile(file);
         }
-
-
     }
 
     public void saveFile(File file){
-        //ecriture
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))){
-            //<NB_LIGNES,NB_COLONNES
             writer.write(this.model.getRowCount() + "," + this.model.getColumnCount());
             writer.newLine();
-
-            //parcourir toutes les cellules
-            for (int r = 0; r < this.model.getRowCount(); r++){
-                for (int c = 0; c < this.model.getColumnCount(); c++){
-                    String formula = this.model.getCell(r, c).getFormula();
-                    //Je sauvegarde que si ce n'est pas vide
+            //parcour toutes les lignes
+            for (int row = 0; row < this.model.getRowCount(); row++){
+                for (int col = 0; col < this.model.getColumnCount(); col++){
+                    String formula = this.model.getCell(row, col).getFormula();
                     if (formula != null && !formula.isEmpty() && !formula.equals(" ")){
-                        writer.write(c + "," + r + ";" + formula);
+                        writer.write(row + "," + col + ";" + formula);
                         writer.newLine();
                     }
                 }
