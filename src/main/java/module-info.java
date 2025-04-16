@@ -5,6 +5,7 @@ module excel {
     requires component.inspector.fx;
     requires java.naming;
     requires java.desktop;
+    requires jdk.jfr;
 
     exports excel;
     opens excel to javafx.fxml;
