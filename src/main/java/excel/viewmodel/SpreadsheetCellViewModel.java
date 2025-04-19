@@ -87,7 +87,7 @@ public class SpreadsheetCellViewModel {
     public void executecomand(String formula) {
         // Ne créer une commande que si la nouvelle formule est différente de l'ancienne
         String currentFormula = model.getFormulaProperty();
-        if (!formula.equals(currentFormula)) {  // Ajoutez cette vérification
+        if (!formula.equals(currentFormula)) {
             System.out.println("Executing command avec formula: " + formula);
             Command command = new CommandManager(model, formula);
             spreadsheetModel.executeCommand(command);
