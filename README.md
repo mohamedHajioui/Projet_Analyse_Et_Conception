@@ -31,6 +31,8 @@ https://drive.google.com/file/d/1bcYmLdJuv665pGBFJFPEuFN_99hYNQOJ/view?usp=shari
 ### Liste des fonctionnalités supplémentaires
 * Copier/coller
 * Clear
+* auto-save
+
 ...
 
 ## Notes de version itération 3
