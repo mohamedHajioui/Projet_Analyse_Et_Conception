@@ -20,9 +20,17 @@ https://drive.google.com/file/d/1bcYmLdJuv665pGBFJFPEuFN_99hYNQOJ/view?usp=shari
 
 ## Notes de version itération 2
 
+### Diagramme
+
+* Classes logicielles (2eme itération) : https://drive.google.com/file/d/13gg_SmWpC5F5ICeF9RvBOXNhAHAgIF-O/view?usp=sharing
+* Sequence : 
+
+  Undo : https://drive.google.com/file/d/1oQhbZjWEReZsUUjf7cJchgmMEPPdQUSa/view?usp=sharing
+
+  Redo : https://drive.google.com/file/d/18rRv8Mv5gzXtcwsfGNFd889YsNjF8FRX/view?usp=sharing
 ### Liste des fonctionnalités supplémentaires
 * Copier/coller
-* 
+* Clear
 ...
 
 ## Notes de version itération 3
