@@ -8,10 +8,11 @@
 * 
 
 ### Diagramme de classes
-Logicielles (1ère itération) : 
-* https://drive.google.com/file/d/1WQnJeQat2qEOjuuP8V43b_qy4GiHyBti/view?usp=sharing
-Domaine : 
-* https://drive.google.com/file/d/1bcYmLdJuv665pGBFJFPEuFN_99hYNQOJ/view?usp=sharing
+
+* Logicielles (1ère itération) : https://drive.google.com/file/d/1WQnJeQat2qEOjuuP8V43b_qy4GiHyBti/view?usp=sharing
+ 
+* Domaine : 
+https://drive.google.com/file/d/1bcYmLdJuv665pGBFJFPEuFN_99hYNQOJ/view?usp=sharing
 
 ### Liste des fonctionnalités supplémentaires
 
@@ -19,6 +20,9 @@ Domaine :
 
 ## Notes de version itération 2
 
+### Liste des fonctionnalités supplémentaires
+* Copier/coller
+* 
 ...
 
 ## Notes de version itération 3
