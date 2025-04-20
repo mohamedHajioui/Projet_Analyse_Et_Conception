@@ -59,17 +59,12 @@ public class MySpreadsheetView extends SpreadsheetView {
 
     private void configEditLogic() {
         editingCellProperty().addListener((observable, oldValue, newValue) -> {
-            boolean editMode = (newValue != null);
+            boolean editMode = newValue != null; // true si la cellule est en mode édition
             if (editMode) {
-                // Si on rentre en édition
-                changeEditionMode(true);
-            } else {
-                // Si on quitte l’édition
-                changeEditionMode(false);
+                changeEditionMode(true); // Activer le mode édition pour le VM
             }
         });
-
-        // Listener pour gérer la sélection d'une cellule (inchangé)
+        // Listener pour gérer la sélection d'une cellule
         this.getSelectionModel().getSelectedCells().addListener((InvalidationListener) il -> {
             if (getSelectionModel().getSelectedCells().isEmpty()) {
                 changeEditionMode(false);

@@ -43,12 +43,19 @@ public class SpreadsheetCellModel {
         if (formula.startsWith("=")) {
             try {
                 model.setCurrentCell(this);
+                // On vérifie d'abord si la cellule courante est dans une ref circulaire
                 Set<SpreadsheetCellModel> visitedCells = new HashSet<>();
-                if (checkCircularReference(this, visitedCells)) {
-                    //Affichage dans current cell
-                    return "#CIRCULAR_REF";
-                }
+                Set<SpreadsheetCellModel> circularCells = new HashSet<>();
+                //on rajoute un set circularcells qui permet de detecter l'implication ou non de la cell dans circular
 
+                if (checkCircularReference(this, visitedCells, circularCells)) {
+                    if (circularCells.contains(this)) {
+                        System.out.println("Cell " + this.getRow() + "," + this.getColumn() + " est dans circular");
+                        return "#CIRCULAR_REF";
+                    }
+                    System.out.println("Cell " + this.getRow() + "," + this.getColumn() + " n'est pas dans circular");
+                    return "#VALEUR";
+                }
                 List<String> referencedCells = extractCellReferences(formula);
                 for (String cell : referencedCells){
                     int[] coords = ExcelConverter.excelToRowCol(cell);
@@ -80,37 +87,39 @@ public class SpreadsheetCellModel {
             return formula; // Si ce n'est pas une formule, on retourne la valeur brute
         }
     }
-
-    private boolean checkCircularReference(SpreadsheetCellModel currentCell, Set<SpreadsheetCellModel> visitedCells) {
-
-        //Si current cell est dans visitedCells set alors c'est reference circulaire
+    protected boolean checkCircularReference(SpreadsheetCellModel currentCell,
+                                             Set<SpreadsheetCellModel> visitedCells,
+                                             Set<SpreadsheetCellModel> circularCells) {
         if (visitedCells.contains(currentCell)) {
+            // On a trouvé un cycle
+            SpreadsheetCellModel start = currentCell;
+            // On ne marque comme circulaires que les cellules depuis le point de détection
+            boolean startMarking = false;
+            for (SpreadsheetCellModel cell : visitedCells) {
+                if (cell == start) {
+                    startMarking = true;
+                }
+                if (startMarking) {
+                    circularCells.add(cell);
+                }
+            }
             return true;
         }
 
         visitedCells.add(currentCell);
 
         List<String> cellReferences = extractCellReferences(currentCell.getFormula());
-        Set<String> alreadyCheckedRefs = new HashSet<>();
-
         for (String cellRef : cellReferences) {
             int[] coords = ExcelConverter.excelToRowCol(cellRef);
             SpreadsheetCellModel referencedCell = model.getCell(coords[0], coords[1]);
-            if (alreadyCheckedRefs.contains(cellRef)) {
-                continue;
-            }
-            alreadyCheckedRefs.add(cellRef);
             if (referencedCell != null) {
-
-                List<String> referencedCellReferences = extractCellReferences(referencedCell.getFormula());
-                if (referencedCellReferences.isEmpty()) {
-                    return false;
-                }
-                if (checkCircularReference(referencedCell, visitedCells)) {
+                if (checkCircularReference(referencedCell, visitedCells, circularCells)) {
                     return true;
                 }
             }
         }
+
+        visitedCells.remove(currentCell);
         return false;
     }
 
@@ -136,20 +145,13 @@ public class SpreadsheetCellModel {
 
             String currentFormula = formulaProperty.get();
             // Vérifier si c'est une formule SUM et si elle contient une référence circulaire
-            if (currentFormula.toUpperCase().startsWith("=SUM(")) {
-                Set<SpreadsheetCellModel> visitedCells = new HashSet<>();
-                if (checkCircularReference(this, visitedCells)) {
-                    formulaProperty.set("#CIRCULAR_REF");
-                    return;
-                }
-            }
 
             formulaProperty.set("");
             formulaProperty.set(currentFormula);
 
             // Mettre à jour les cellules dépendantes
             if (!dependentCells.isEmpty()) {
-                // Créer une copie pour éviter les ConcurrentModificationException
+                // Créer une copie pour éviter les erreurs
                 Set<SpreadsheetCellModel> cellsToUpdate = new HashSet<>(dependentCells);
                 for (SpreadsheetCellModel cell : cellsToUpdate) {
                     cell.updatevalue();
