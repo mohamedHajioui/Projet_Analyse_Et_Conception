@@ -130,17 +130,6 @@ public class SpreadsheetCellModel {
         if (isUpdating) {
             return;
         }
-        /*public void updatevalue(){
-            //cleanDependencies();
-            String currentFormula = formulaProperty.get();
-            formulaProperty.set("");
-            formulaProperty.set(currentFormula);
-            if(!dependentCells.isEmpty()){
-                for (SpreadsheetCellModel cell : new HashSet<>(dependentCells)) {
-                    cell.updatevalue();
-
-                }
-            }*/
 
         try {
             isUpdating = true;
