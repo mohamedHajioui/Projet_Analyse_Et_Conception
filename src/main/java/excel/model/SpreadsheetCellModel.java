@@ -85,14 +85,18 @@ public class SpreadsheetCellModel {
         }
     }
     protected boolean checkCircularReference(SpreadsheetCellModel currentCell,
-                                           Set<SpreadsheetCellModel> visitedCells,
-                                           Set<SpreadsheetCellModel> circularCells)
-    {
+                                             Set<SpreadsheetCellModel> visitedCells,
+                                             Set<SpreadsheetCellModel> circularCells) {
         if (visitedCells.contains(currentCell)) {
-            // On ajoute seulement les cellules depuis le point de détection
+            // On a trouvé un cycle
             SpreadsheetCellModel start = currentCell;
+            // On ne marque comme circulaires que les cellules depuis le point de détection
+            boolean startMarking = false;
             for (SpreadsheetCellModel cell : visitedCells) {
-                if (cell == start || circularCells.contains(start)) {
+                if (cell == start) {
+                    startMarking = true;
+                }
+                if (startMarking) {
                     circularCells.add(cell);
                 }
             }
@@ -111,6 +115,7 @@ public class SpreadsheetCellModel {
                 }
             }
         }
+
         visitedCells.remove(currentCell);
         return false;
     }
