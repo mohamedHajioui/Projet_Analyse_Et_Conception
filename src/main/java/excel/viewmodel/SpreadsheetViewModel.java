@@ -149,7 +149,7 @@ public class SpreadsheetViewModel {
                 int col = Integer.parseInt(rowColParts[1].trim());
                 String content = rowColAndValue[1];
 
-                this.model.getCell(col, row).setFormula(content);
+                this.model.getCell(row, col).setFormula(content);
             }
         } catch (IOException e){
             e.printStackTrace();
