@@ -42,8 +42,6 @@ public class MySpreadsheetView extends SpreadsheetView {
         for (int row = 0; row < grid.getRowCount(); ++row) {
             final ObservableList<SpreadsheetCell> list = FXCollections.observableArrayList();
             for (int column = 0; column < grid.getColumnCount(); ++column) {
-
-
                 SpreadsheetCellViewModel cellVM = viewModel.getCellViewModel(row, column); // On récupère le VM de la cellule
                 String cellValue = cellVM.getCellValue();
                 SpreadsheetCell cell = SpreadsheetCellType.STRING.createCell(row, column, 1, 1, cellValue);

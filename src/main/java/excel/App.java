@@ -13,14 +13,16 @@ import java.io.File;
 public class App extends Application {
     private SpreadsheetModel model = new SpreadsheetModel(10, 4);
     private SpreadsheetViewModel viewModel = new SpreadsheetViewModel(model);
+    private MainView root;
 
     @Override
     public void start(Stage primaryStage) {
+        this.root = new MainView(viewModel);
+        this.root.setApp(this);
         File lastSessionFile = new File("autoSave.e4e");
         if (lastSessionFile.exists()){
-            viewModel.openFile(lastSessionFile);
+            viewModel.openFile(lastSessionFile, this);
         }
-        MainView root = new MainView(viewModel);
         FXComponentInspectorHandler.handleAll();
         Scene scene = new Scene(root, 633, 315);
         primaryStage.setTitle("Spreadsheet");
@@ -33,6 +35,11 @@ public class App extends Application {
         File lastSessionFile = new File("autoSave.e4e");
         viewModel.saveFile(lastSessionFile);
         super.stop();
+    }
+
+    public void replaceViewModel(SpreadsheetViewModel newViewModel) {
+        this.viewModel = newViewModel;
+        root.setViewModel(newViewModel);
     }
     
     public static void main(String[] args) {

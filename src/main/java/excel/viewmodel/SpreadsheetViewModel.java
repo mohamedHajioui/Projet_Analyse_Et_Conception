@@ -1,5 +1,7 @@
 package excel.viewmodel;
 
+import excel.App;
+import excel.model.SpreadsheetCellModel;
 import excel.model.SpreadsheetModel;
 import excel.tools.ExcelConverter;
 import javafx.beans.property.*;
@@ -115,19 +117,19 @@ public class SpreadsheetViewModel {
         canRedo.set(canRedoValue);
     }
 
-    public void handleOpen(){
+    public void handleOpen(App app){
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open file");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("E4E files (*.e4e)", "*.e4e"));
         //ouvrir boite de dialogue
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
-            openFile(file);
+            openFile(file, app);
         }
     }
 
 
-    public void openFile(File file){
+    public void openFile(File file, App app){
         //lire le fichier
         try(BufferedReader reader = new BufferedReader(new FileReader(file))){
             String line = reader.readLine();
@@ -139,6 +141,9 @@ public class SpreadsheetViewModel {
             int nbRows = Integer.parseInt(sizeParts[0].trim());
             int nbCols = Integer.parseInt(sizeParts[1].trim());
 
+            SpreadsheetModel newModel = new SpreadsheetModel(nbRows, nbCols);
+            SpreadsheetViewModel newViewModel = new SpreadsheetViewModel(newModel);
+
             String cellLine;
             while ((cellLine = reader.readLine()) != null) {
                 String[] rowColAndValue = cellLine.split(";");
@@ -149,8 +154,17 @@ public class SpreadsheetViewModel {
                 int col = Integer.parseInt(rowColParts[1].trim());
                 String content = rowColAndValue[1];
 
-                this.model.getCell(row, col).setFormula(content);
+                if (row >= 0 && row < nbRows && col >= 0 && col < nbCols) {
+                    SpreadsheetCellModel cell = newModel.getCell(row, col);
+                    newModel.setCurrentCell(cell); // important
+                    cell.setFormula(content);
+                    // Forcer la mise à jour manuelle du compteur pour les cellules chargées
+                    newModel.updateSumCount(null, content);
+                }
+
             }
+            System.out.println("Fichier ouvert !");
+            app.replaceViewModel(newViewModel);
         } catch (IOException e){
             e.printStackTrace();
         }
@@ -217,5 +231,11 @@ public class SpreadsheetViewModel {
     public boolean copiedContent() {
         return !copiedValue.isEmpty();
     }
+
+    public ReadOnlyIntegerProperty sumCountPropertyVm(){
+        return model.countSumProperty();
+    }
+
+
 
 }

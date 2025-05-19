@@ -1,9 +1,12 @@
 package excel.model;
 
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class SpreadsheetModel {
@@ -77,6 +80,48 @@ public class SpreadsheetModel {
     public boolean canRedo() {
         return !redoStack.isEmpty();
     }
+
+    private final IntegerProperty countSum = new SimpleIntegerProperty(0);
+
+    public ReadOnlyIntegerProperty countSumProperty() {
+        return countSum;
+    }
+
+    public void updateSumCount(String oldValue, String newValue) {
+        SpreadsheetCellModel cell = getCurrentCell();
+        if (cell == null) return;
+
+        String cellValue = getCurrentCell().getValue();
+        if ("SYNTAX_ERROR".equals(cellValue) || "#VALEUR".equals(cellValue) || "#CIRCULAR_REF".equals(cellValue)) {
+            return;
+        }
+
+        Pattern patternSum = Pattern.compile("SUM\\(", Pattern.CASE_INSENSITIVE);
+        Pattern patternExp = Pattern.compile("\\^");
+
+        int countOld = 0;
+        if (oldValue != null && oldValue.startsWith("=")) {
+            Matcher matchSumOld = patternSum.matcher(oldValue);
+            Matcher matchExpOld = patternExp.matcher(oldValue);
+            while (matchSumOld.find()) countOld++;
+            while (matchExpOld.find()) countOld++;
+        }
+
+
+        int countNew = 0;
+        if (newValue != null && newValue.startsWith("=")) {
+            Matcher matchSumNew = patternSum.matcher(newValue);
+            Matcher matchExpNew = patternExp.matcher(newValue);
+            while (matchSumNew.find()) countNew++;
+            while (matchExpNew.find()) countNew++;
+        }
+
+        int diff = countNew - countOld;
+        countSum.set(Math.max(0, countSum.get()) + diff);
+    }
+
+
+
 
 
 

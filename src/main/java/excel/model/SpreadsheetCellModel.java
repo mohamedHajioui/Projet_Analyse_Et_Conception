@@ -28,6 +28,7 @@ public class SpreadsheetCellModel {
         this.model = model;
         this.formulaProperty.set(value);
         this.valueBinding = Bindings.createStringBinding(this::calculateValue, this.formulaProperty);
+        updateFormulaProperty();
     }
 
     public int getRow() {
@@ -192,6 +193,12 @@ public class SpreadsheetCellModel {
     public String toString() {
         return "cell " + ExcelConverter.rowColToExcel(this.row, this.column)
                 + " (row " + this.row + ", column " + this.column + ") = \"" + this.valueBinding.get() + "\"";
+    }
+
+    public void updateFormulaProperty(){
+        this.formulaProperty.addListener((obs, oldVal, newVal) -> {
+            model.updateSumCount(oldVal, newVal);
+        });
     }
 
 }

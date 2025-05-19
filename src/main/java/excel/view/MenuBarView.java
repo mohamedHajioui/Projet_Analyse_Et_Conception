@@ -1,5 +1,6 @@
 package excel.view;
 
+import excel.App;
 import excel.viewmodel.SpreadsheetViewModel;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.Menu;
@@ -13,6 +14,7 @@ import javafx.scene.layout.HBox;
 public class MenuBarView extends HBox {
     private final SpreadsheetViewModel viewModel;
     private final MenuBar menuBar;
+    private App app;
 
     public MenuBarView(SpreadsheetViewModel viewModel) {
         this.viewModel = viewModel;
@@ -42,7 +44,7 @@ public class MenuBarView extends HBox {
 
         //definir les actions quand on clique sur file ou edit
         clearItem.setOnAction(e -> viewModel.clear());
-        openItem.setOnAction(e -> viewModel.handleOpen());
+        openItem.setOnAction(e -> viewModel.handleOpen(app));
         saveItem.setOnAction(e -> viewModel.handleSave());
         undoItem.setOnAction(e -> viewModel.undo());
         redoItem.setOnAction(e -> viewModel.redo());
@@ -53,4 +55,8 @@ public class MenuBarView extends HBox {
         this.getChildren().add(menuBar);
 
     }
+    public void setApp(App app) {
+        this.app = app;
+    }
+
 }

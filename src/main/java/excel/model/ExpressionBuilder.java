@@ -35,7 +35,7 @@ public class ExpressionBuilder {
             if (Character.isLetterOrDigit(c) || c == '.') {
                 currentToken.append(c);
 
-            } else if ("+-*/><=!".indexOf(c) != -1) {
+            } else if ("^+-*/><=!".indexOf(c) != -1) {
                 if (!currentToken.isEmpty()) {
                     tokens.add(currentToken.toString());
                     currentToken.setLength(0);
@@ -202,6 +202,12 @@ public class ExpressionBuilder {
             }
         }
 
+        for (int i = tokens.size() - 1; i >= 0; i--){
+            String token = tokens.get(i);
+            if (isExposant(token))
+                return i;
+        }
+
         return -1;
     }
 
@@ -216,6 +222,10 @@ public class ExpressionBuilder {
 
     public boolean isComparison(String s) {
         return s.equals(">") || s.equals("<") || s.equals(">=") || s.equals("<=") || s.equals("==") || s.equals("!=");
+    }
+
+    public boolean isExposant(String s){
+        return s.equals("^");
     }
 
     public boolean isEquals(String s) {
@@ -256,6 +266,8 @@ public class ExpressionBuilder {
                 return new LessThanOrEqualExpression(left, right);
             case "!=":
                 return new NotEqualsExpression(left, right);
+            case "^":
+                return new ExposantExpression(left, right);
             default:
                 throw new IllegalArgumentException("Unknown operator: " + op);
         }
