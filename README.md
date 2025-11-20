@@ -1,62 +1,156 @@
-# Projet ANC3 2425 - Groupe a08 - Excel
+# Mini Spreadsheet (JavaFX + MVVM)
 
-## Notes de version itération 1
+This project is a simplified spreadsheet application inspired by Excel, Google Sheets and OpenCalc.  
+It was developed as part of an academic project and implements a functional spreadsheet engine with cell editing, expression parsing, error detection, file saving/loading, and undo/redo capabilities.
 
-### Liste des bugs connus
+The application is built with Java 21, JavaFX 21 and follows the MVVM architecture, using bindings and listeners for UI updates.
 
-* Affichage incorrect des arrondis (ex : 2.0 au lieu de 2 seulement dans le cas ou on ecrit une expression avec qu'une seule valeur "=2")
-* 
+---
 
-### Diagramme de classes
+## Main Features
 
-* Logicielles (1ère itération) : https://drive.google.com/file/d/1WQnJeQat2qEOjuuP8V43b_qy4GiHyBti/view?usp=sharing
- 
-* Domaine : 
-https://drive.google.com/file/d/1bcYmLdJuv665pGBFJFPEuFN_99hYNQOJ/view?usp=sharing
+### Cell Editing and Display
+- Each cell contains text content and a computed value.
+- Editing is possible via double-click or through the edit bar.
+- When not editing, the cell displays the computed value; when editing, it shows the raw content.
+- Numbers are formatted automatically:
+  - Integers are displayed without decimals.
+  - Floating-point numbers are displayed with two decimals.
 
-### Liste des fonctionnalités supplémentaires
+---
 
-### Divers
+## Expression Engine (Interpreter Pattern)
 
-## Notes de version itération 2
+Expressions are parsed into an abstract syntax tree (AST) using the Interpreter and Builder design patterns.
 
-### Diagramme
+Supported features:
+- Literal values: numbers, booleans, text
+- Cell references: `A1`, `D8`, etc.
+- Arithmetic operators: `+`, `-`, `*`, `/`
+- Logical operators: `and`, `or`, `not`
+- Comparison operators: `>`, `>=`, `<`, `<=`, `=`, `!=`
+- Automatic recomputation when referenced cells change
 
-* Classes logicielles (2eme itération) : https://drive.google.com/file/d/13gg_SmWpC5F5ICeF9RvBOXNhAHAgIF-O/view?usp=sharing
-* Sequence : 
+Examples:
+= 5 + 3 * 2
+= B2 + 3 * 5 + C4
+= 5 > 3 and 2 > 1 or false
+= B1 + C1 > 10
 
-  Undo : https://drive.google.com/file/d/1oQhbZjWEReZsUUjf7cJchgmMEPPdQUSa/view?usp=sharing
+## Error Handling
 
-  Redo : https://drive.google.com/file/d/18rRv8Mv5gzXtcwsfGNFd889YsNjF8FRX/view?usp=sharing
-### Liste des fonctionnalités supplémentaires
-* Copier/coller
-* Clear
-* auto-save
+The spreadsheet detects both syntax errors and evaluation errors.
 
+### Syntax errors  
+Displayed as `SYNTAX_ERROR`.  
+Examples:
+- `=5+3*`
+- `=true + 5`
+- Invalid references or malformed expressions
+
+### Evaluation errors  
+Displayed as `#VALEUR`.  
+Examples:
+- Type mismatch from referenced cells
+- Division by zero (`=5/0`)
+
+### Circular references  
+Displayed as `#CIRCULAR_REF` when cells refer to each other directly or indirectly.
+
+---
+
+## SUM Function
+
+A custom `SUM` function is implemented with the syntax:
+
+=SUM(A1:A5)
+=SUM(A1:B1)
+=SUM(C2:D3)
+
+Rules:
+- Supports row ranges, column ranges and rectangular blocks.
+- Produces `SYNTAX_ERROR` if the range is invalid.
+- Produces `#VALEUR` if any referenced cell contains a non-numeric value.
+- Produces `#CIRCULAR_REF` if the target cell is inside the summation range.
+
+---
+
+## File Save and Load (.e4e Format)
+
+The spreadsheet can be saved to and loaded from a custom file format:
+
+File structure:
+<ROWS>,<COLUMNS>
+<row>,<col>;<content>
 ...
 
-## Notes de version itération 3
+Example:
+10,4
+0,0;5
+0,2;coucou
+1,0;5
+1,2;= 5 *2 +7
+2,1;=sum(a1:a2)
+3,0;=sum(a2:a1)
 
-...
+Features:
+- Standard file dialogs (open/save)
+- Restores the sheet exactly as saved
 
+---
 
-## Pour lancer le projet
+## Undo / Redo
 
-### Option 1 
+The application supports:
+- Undo (CTRL+Z)
+- Redo (CTRL+Y)
+- Undo/Redo menu entries, enabled only when applicable
+- Multiple undo/redo steps possible
 
-Dans le menu d'exécution, ne pas choisir "Current File" mais "App"
+All actions that modify the spreadsheet are tracked.
 
-### Option 2
+---
 
-Dans VM options, ajouter ça : 
+## Architecture (MVVM)
 
-```
---add-exports=javafx.base/com.sun.javafx.event=org.controlsfx.controls
---add-exports=javafx.controls/com.sun.javafx.scene.control.behavior=org.controlsfx.controls
-```
+The project follows the MVVM architecture:
+- Model: cells, expressions, parsing, AST evaluation
+- ViewModel: binds the model to the UI, handles logic
+- View: JavaFX UI using SpreadsheetView from ControlsFX
 
-Source : https://github.com/controlsfx/controlsfx/wiki/Using-ControlsFX-with-JDK-9-and-above 
+Bindings and listeners ensure:
+- Automatic refresh of computed values
+- Error propagation
+- Undo/Redo state tracking
 
-### Option 3
+---
 
-Dans la console de maven, tapper `mvn javafx:run`
+## Known Limitations
+
+(Add your own if needed.)
+Examples:
+- Parentheses are not implemented unless added as a bonus.
+- Unary minus is not supported.
+- Only basic numeric formatting is provided.
+
+---
+
+## Technologies
+
+- Java 21  
+- JavaFX 21  
+- ControlsFX (SpreadsheetView)  
+- MVVM architecture  
+- Interpreter pattern  
+- Builder pattern  
+
+---
+
+## Academic Context
+
+This project was developed as part of the 2024–2025 TGPR course at EPFC.  
+Each iteration required:
+- an analysis report (PDF)
+- updated code
+- a tagged release in Git
+- a delivery note in the README describing issues and design choices
